@@ -19,8 +19,12 @@ Options -Indexes
 <IfModule mod_rewrite.c>
     RewriteEngine On
 
-    # Application internals are never reachable directly.
-    RewriteRule ^(app|bootstrap|config|database|deploy|docs|lang|resources|routes|storage|tests|vendor|node_modules)(/|$) - [F,L]
+    # Application internals are never reachable directly. (storage/ is
+    # deliberately absent: /storage/... is the public URL of uploaded
+    # images, which the rule below maps to public/storage — the
+    # storage:link symlink to storage/app/public only, never logs or
+    # sessions.)
+    RewriteRule ^(app|bootstrap|config|database|deploy|docs|lang|resources|routes|tests|vendor|node_modules)(/|$) - [F,L]
 
     # Everything else is served from public/.
     RewriteCond %{REQUEST_URI} !^/public/
