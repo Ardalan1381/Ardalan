@@ -175,14 +175,18 @@
         <h2 class="text-sm font-semibold text-gray-900 dark:text-gray-100">{{ __('reports.profit_analytics') }}</h2>
 
         @if ($canViewProfit)
+            <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">{{ __('reports.profit_realised_basis') }}</p>
             <x-table class="mt-2" :headers="[__('reports.product'), __('reports.quantity'), __('reports.revenue'), __('reports.cogs'), __('reports.profit')]">
                 @forelse ($profitByProduct as $row)
-                    <tr>
+                    <tr data-profit-quantity="{{ $row->quantity }}">
                         <td class="px-4 py-3">
                             {{ $row->product_name }}
                             @unless ($row->has_recipe)
                                 <span class="ms-1 text-xs text-gray-400 dark:text-gray-500">({{ __('reports.no_recipe_configured') }})</span>
                             @endunless
+                            @if ($row->cogs_estimated)
+                                <span class="ms-1 text-xs text-amber-600 dark:text-amber-400" title="{{ __('reports.cogs_estimated_hint') }}">({{ __('reports.cogs_estimated') }})</span>
+                            @endif
                         </td>
                         <td class="px-4 py-3">{{ $row->quantity }}</td>
                         <td class="px-4 py-3">{{ \App\Support\Money::format($row->revenue) }}</td>
@@ -193,6 +197,15 @@
                     <tr><td colspan="5" class="px-4 py-8 text-center text-gray-500 dark:text-gray-400">{{ __('reports.no_profit_data_period') }}</td></tr>
                 @endforelse
             </x-table>
+
+            <dl class="mt-3 grid grid-cols-2 gap-3 text-sm sm:grid-cols-3 lg:grid-cols-6">
+                @foreach (['revenue', 'refunds', 'net_revenue', 'cogs', 'gross_profit', 'pending_refunds'] as $metric)
+                    <div class="rounded-lg border border-gray-200 dark:border-gray-800 p-3" data-profit-summary="{{ $metric }}">
+                        <dt class="text-xs text-gray-500 dark:text-gray-400">{{ __('reports.profit_summary.'.$metric) }}</dt>
+                        <dd class="mt-1 font-semibold tabular-nums">{{ \App\Support\Money::format($profitSummary[$metric]) }}</dd>
+                    </div>
+                @endforeach
+            </dl>
         @else
             <p class="mt-2 text-sm text-gray-500 dark:text-gray-400">{{ __('reports.profit_analytics_restricted') }}</p>
         @endif

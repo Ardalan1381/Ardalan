@@ -189,6 +189,9 @@ class DiscountCalculator
             'unit_price' => $unitPrice,
             'line_total' => $lineTotal,
             'discount_total' => $lineTotal,
+            // Marks a line the engine added on its own (not one the
+            // customer ordered) — AddItemsToOrderAction relies on this.
+            'engine_line' => true,
         ];
 
         return [['amount' => $lineTotal, 'line_index' => array_key_last($lineItems)]];

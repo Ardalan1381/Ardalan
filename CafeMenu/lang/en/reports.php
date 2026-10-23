@@ -68,4 +68,15 @@ return [
     'profit' => 'Profit',
     'no_recipe_configured' => 'No recipe configured',
     'no_profit_data_period' => 'No sales in this period.',
+    'profit_realised_basis' => 'Completed orders only. Cost of goods is what the items actually consumed, at the cost recorded when they were consumed.',
+    'cogs_estimated' => 'estimated cost',
+    'cogs_estimated_hint' => 'No recorded consumption cost for some of these items; estimated from the current recipe and average cost.',
+    'profit_summary' => [
+        'revenue' => 'Revenue',
+        'refunds' => 'Refunds (completed)',
+        'net_revenue' => 'Net revenue',
+        'cogs' => 'Cost of goods',
+        'gross_profit' => 'Gross profit',
+        'pending_refunds' => 'Refunds awaiting settlement',
+    ],
 ];

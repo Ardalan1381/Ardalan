@@ -162,7 +162,9 @@ class ReportsExpansionTest extends TestCase
             'type' => 'dine_in', 'table_id' => $table->id,
             'items' => [['product_id' => $product->id, 'quantity' => 1]],
         ], $waiter);
-        app(TransitionOrderStatusAction::class)->execute($order, 'confirmed', $waiter);
+        // Profit analytics counts realised (completed) sales only — see
+        // ProfitAnalyticsService and docs/engineering/DECISIONS.md D-03.
+        $this->complete($order, $waiter);
 
         $ownerResponse = $this->actingAs($owner)->get(route('admin.reports.index'));
         $this->assertTrue($ownerResponse->viewData('canViewProfit'));
@@ -185,10 +187,11 @@ class ReportsExpansionTest extends TestCase
         $waiter = $this->userWithRole('waiter');
         $table = Table::factory()->create();
 
-        app(CreateStaffOrderAction::class)->execute([
+        $order = app(CreateStaffOrderAction::class)->execute([
             'type' => 'dine_in', 'table_id' => $table->id,
             'items' => [['product_id' => $product->id, 'quantity' => 1]],
         ], $waiter);
+        $this->complete($order, $waiter);
 
         $response = $this->actingAs($owner)->get(route('admin.reports.index'));
         $row = $response->viewData('profitByProduct')->first();
@@ -196,5 +199,12 @@ class ReportsExpansionTest extends TestCase
         $this->assertFalse($row->has_recipe);
         $this->assertSame(0, $row->cogs);
         $this->assertSame(5000, $row->profit);
+    }
+
+    private function complete(\App\Models\Order $order, User $actor): void
+    {
+        foreach (['confirmed', 'preparing', 'ready', 'completed'] as $status) {
+            app(TransitionOrderStatusAction::class)->execute($order->fresh(), $status, $actor);
+        }
     }
 }

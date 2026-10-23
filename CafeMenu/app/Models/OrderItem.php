@@ -27,6 +27,7 @@ class OrderItem extends Model
             'quantity' => 'integer',
             'line_total' => 'integer',
             'discount_total' => 'integer',
+            'inventory_consumed_at' => 'datetime',
         ];
     }
 
