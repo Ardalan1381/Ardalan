@@ -71,8 +71,16 @@ Then open the site — a fresh install redirects to `/install`.
    script"*. The shipped file needs no `declare` at all.
 3. Create the symlink: `php artisan storage:link` (or ask the host to create
    `public/storage → ../storage/app/public`).
-4. Make `storage/`, `bootstrap/cache/` and `.env` writable by PHP.
-5. Visit the domain → installer.
+4. Make the project folder, `storage/` and `bootstrap/cache/` writable by PHP.
+5. Visit the domain → installer. No shell is needed: on the first request of
+   a never-installed copy the app creates `.env` from `.env.example` and
+   generates `APP_KEY` and the Reverb credentials itself (it never does this
+   once installed, and never overwrites a value). Verified with the release
+   archive on Apache: upload → `/install` → live, without any command.
+
+A prebuilt release archive ships assets built without a Reverb key, so live
+updates stay off until assets are rebuilt on a machine that knows the
+server's `REVERB_APP_KEY`. Shared hosts usually cannot run Reverb anyway.
 
 The root `.htaccess` refuses `.env`, dotfiles, `composer.*`, logs/SQL/backup
 files and every application directory (`app/`, `vendor/`, `config/`, …) and

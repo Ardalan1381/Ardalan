@@ -79,8 +79,8 @@ reproduce. Summary at the time of writing:
 
 | Check | Result |
 |---|---|
-| PHPUnit, SQLite | 637 passed, 8 skipped (the concurrency suite, which needs MySQL/MariaDB) |
-| PHPUnit, MariaDB 10.11 (incl. 8 multi-process concurrency tests) | 645 passed, 0 failed |
+| PHPUnit, SQLite | 640 passed, 8 skipped (the concurrency suite, which needs MySQL/MariaDB) |
+| PHPUnit, MariaDB 10.11 (incl. 8 multi-process concurrency tests) | 648 passed, 0 failed |
 | Pint | clean |
 | composer audit / npm audit | no advisories |
 | Web installer end-to-end on Apache + MariaDB | completed; lock + production `.env` written |

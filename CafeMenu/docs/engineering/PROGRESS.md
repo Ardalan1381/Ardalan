@@ -4,7 +4,8 @@ Newest first. Each entry lists what was inspected, changed, tested, and what
 remains. Commit hashes refer to branch `claude/bold-keller-57ppp9`.
 
 ## Phase 7 — Release preparation
-- **Changed:** `docs/deployment/*`, `docs/guides/*`, `RELEASE_NOTES.md`, `KNOWN_LIMITATIONS.md`, README; release archive script `deploy/build-release.sh`.
+- **Changed:** `docs/deployment/*`, `docs/guides/*` (Persian operator guides), `docs/RELEASE_NOTES.md`, `docs/KNOWN_LIMITATIONS.md`, README; `deploy/build-release.sh`; `App\Support\FirstRunEnvironment`.
+- **Verified:** release archive (19.6 MB, no `.env`/logs/uploads/tests) extracted onto a clean Apache vhost with an empty MariaDB database → browser installer → owner login → dashboard/POS/KDS/reports/settings all 200, with **no shell command**. Before `FirstRunEnvironment` this same test was a bare 500 (no APP_KEY). Migrations: up → rollback → up on MariaDB; duplicate-open-session guard stops without changing data.
 - **Tests:** full suite SQLite + MariaDB (see below).
 
 ## Phase 3 — UI (rendering audit and operational fixes)
@@ -28,5 +29,5 @@ remains. Commit hashes refer to branch `claude/bold-keller-57ppp9`.
 ## Current test status
 | Run | Result |
 |---|---|
-| SQLite | 637 passed, 8 skipped (concurrency suite needs MySQL) |
-| MariaDB 10.11 | 645 passed, 0 failed (147 s) |
+| SQLite | 640 passed, 8 skipped (concurrency suite needs MySQL) |
+| MariaDB 10.11 | 648 passed, 0 failed (151 s) |

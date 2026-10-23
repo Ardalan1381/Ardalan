@@ -53,7 +53,7 @@ No credentials are ever displayed after the account is created; if you lose the 
 
 ### First time on a fresh server
 
-Nothing about the web installer replaces normal PHP app deployment — get the code running first, *then* visit `/install` to finish setup through the browser.
+Nothing about the web installer replaces normal PHP app deployment — get the code running first, *then* visit `/install` to finish setup through the browser. (On shared hosting without a shell, upload a release built with `deploy/build-release.sh`: the first request creates `.env` and `APP_KEY` itself — see `docs/deployment/INSTALLATION.md`.)
 
 ```bash
 # 1. Get the code onto the server (git clone / rsync / release archive), then:
@@ -93,7 +93,7 @@ Edit the `User`/`WorkingDirectory`/`ExecStart` (or `command`/`directory`) paths 
 
 ### Cron
 
-Laravel's scheduler needs one cron entry (currently no scheduled tasks are registered, but this keeps future ones working without further server changes):
+Laravel's scheduler needs one cron entry (it runs the hourly low-stock check, `inventory:check-low-stock`):
 
 ```cron
 * * * * * cd /var/www/cafe && php artisan schedule:run >> /dev/null 2>&1
@@ -127,11 +127,23 @@ Then restart PHP-FPM and the two supervised processes so they pick up the new co
 ## Testing
 
 ```bash
-php artisan test
-./vendor/bin/pint
+php artisan test            # SQLite in memory (fast)
+./vendor/bin/pint --test
 ```
 
-Tests run against an in-memory SQLite database (see `phpunit.xml`) and never touch the configured MySQL connection.
+The suite also runs against MySQL/MariaDB — what production uses — including
+multi-process race tests in `tests/Concurrency`. Point `DB_*` environment
+variables at a **disposable** database; see `docs/engineering/TESTING.md`.
+CI (`.github/workflows/cafemenu.yml`) runs both.
+
+## Documentation
+
+| | |
+|---|---|
+| Installation, shared hosting, HTTPS, backups, upgrades, troubleshooting | `docs/deployment/INSTALLATION.md` |
+| Release notes / known limitations | `docs/RELEASE_NOTES.md`, `docs/KNOWN_LIMITATIONS.md` |
+| Operator guides (Persian) | `docs/guides/ADMIN_GUIDE.md`, `POS_OPERATOR_GUIDE.md`, `KITCHEN_GUIDE.md` |
+| Engineering: baseline, architecture, features, risks, decisions, plan, progress, testing, design system | `docs/engineering/` |
 
 ## License
 
