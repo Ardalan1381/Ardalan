@@ -1,7 +1,7 @@
 @extends('layouts.admin')
 
 @section('admin-content')
-    <div class="flex items-center justify-between">
+    <div class="flex flex-wrap items-center justify-between gap-3">
         <h1 class="text-xl font-semibold text-gray-900 dark:text-gray-100">{{ __('nav.admin.products') }}</h1>
         @can('create', \App\Models\Product::class)
             <x-button href="{{ route('admin.products.create') }}">{{ __('admin.products.new') }}</x-button>

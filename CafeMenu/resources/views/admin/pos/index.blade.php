@@ -1,7 +1,9 @@
 @extends('layouts.admin')
 
+@section('focus-mode', '1')
+
 @section('admin-content')
-    <div class="flex items-center justify-between">
+    <div class="flex flex-wrap items-center justify-between gap-3">
         <div>
             <h1 class="text-xl font-semibold text-gray-900 dark:text-gray-100">{{ __('admin.pos.index_title') }}</h1>
             <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">{{ __('admin.pos.index_subtitle') }}</p>
@@ -39,12 +41,16 @@
                                     class="flex flex-col gap-2 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 p-4 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md"
                                 >
                                     <span class="text-sm font-semibold text-gray-900 dark:text-gray-100">{{ $table->name }}</span>
-                                    <div class="flex flex-wrap gap-1.5">
-                                        <x-badge :status="$table->status">
-                                            {{ $table->status === 'available' ? __('admin.tables.status_available') : __('admin.tables.status_out_of_service') }}
-                                        </x-badge>
-                                        @if ($table->sessions->isNotEmpty())
+                                    {{-- One state per table: out of service wins, then an open
+                                         session (occupied), otherwise free. Showing "available"
+                                         next to "occupied" contradicted itself. --}}
+                                    <div class="flex flex-wrap gap-1.5" data-table-state="{{ $table->status !== 'available' ? 'out_of_service' : ($table->sessions->isNotEmpty() ? 'occupied' : 'available') }}">
+                                        @if ($table->status !== 'available')
+                                            <x-badge :status="$table->status">{{ __('admin.tables.status_out_of_service') }}</x-badge>
+                                        @elseif ($table->sessions->isNotEmpty())
                                             <x-badge variant="warning">{{ __('admin.pos.occupied') }}</x-badge>
+                                        @else
+                                            <x-badge :status="$table->status">{{ __('admin.tables.status_available') }}</x-badge>
                                         @endif
                                     </div>
                                 </a>

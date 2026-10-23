@@ -31,19 +31,19 @@
         <div class="space-y-6">
             <x-card :title="__('admin.customers.stats_title')">
                 <dl class="space-y-3 text-sm">
-                    <div class="flex items-center justify-between">
+                    <div class="flex flex-wrap items-center justify-between gap-3">
                         <dt class="text-gray-500 dark:text-gray-400">{{ __('admin.customers.total_spent') }}</dt>
                         <dd class="font-medium text-gray-900 dark:text-gray-100">{{ \App\Support\Money::format($stats['total_spent']) }}</dd>
                     </div>
-                    <div class="flex items-center justify-between">
+                    <div class="flex flex-wrap items-center justify-between gap-3">
                         <dt class="text-gray-500 dark:text-gray-400">{{ __('admin.customers.order_count') }}</dt>
                         <dd class="font-medium text-gray-900 dark:text-gray-100">{{ $stats['order_count'] }}</dd>
                     </div>
-                    <div class="flex items-center justify-between">
+                    <div class="flex flex-wrap items-center justify-between gap-3">
                         <dt class="text-gray-500 dark:text-gray-400">{{ __('admin.customers.average_order_value') }}</dt>
                         <dd class="font-medium text-gray-900 dark:text-gray-100">{{ \App\Support\Money::format($stats['average_order_value']) }}</dd>
                     </div>
-                    <div class="flex items-center justify-between">
+                    <div class="flex flex-wrap items-center justify-between gap-3">
                         <dt class="text-gray-500 dark:text-gray-400">{{ __('admin.customers.last_order_at') }}</dt>
                         <dd class="font-medium text-gray-900 dark:text-gray-100">
                             {{ $stats['last_order_at'] ? \App\Support\LocalizedDate::diffForHumans($stats['last_order_at']) : __('admin.customers.never_ordered') }}
@@ -70,7 +70,7 @@
             </x-card>
 
             <x-card :title="__('admin.loyalty.ledger_title')">
-                <div class="flex items-center justify-between">
+                <div class="flex flex-wrap items-center justify-between gap-3">
                     <span class="text-sm text-gray-500 dark:text-gray-400">{{ __('admin.loyalty.balance') }}</span>
                     <span class="text-lg font-semibold text-gray-900 dark:text-gray-100">{{ $customer->loyalty_points_balance }}</span>
                 </div>

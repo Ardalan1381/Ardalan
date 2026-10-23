@@ -1,6 +1,7 @@
 // The admin sidebar is an off-canvas drawer on small screens (see the
 // `-translate-x-full`/`rtl:translate-x-full` classes in the layout) and a
-// static column from the `md` breakpoint up. This just toggles it open/
+// static column from the `md` breakpoint up (`2xl` on focus-mode screens
+// such as the KDS and POS). This just toggles it open/
 // closed on mobile — the layout's own responsive classes handle desktop.
 document.addEventListener('DOMContentLoaded', () => {
     const sidebar = document.getElementById('admin-sidebar');
@@ -25,6 +26,11 @@ document.addEventListener('DOMContentLoaded', () => {
     openButton.addEventListener('click', open);
     closeButton?.addEventListener('click', close);
     backdrop.addEventListener('click', close);
+    document.addEventListener('keydown', (event) => {
+        if (event.key === 'Escape' && ! backdrop.hidden) {
+            close();
+        }
+    });
 
     // Picking a page from the drawer should close it too, otherwise it
     // stays open over the newly-loaded page until manually dismissed.

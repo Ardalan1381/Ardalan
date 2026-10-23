@@ -2,6 +2,16 @@
 
 return [
     'admin' => [
+        'open_menu' => 'باز کردن منو',
+        'close_menu' => 'بستن منو',
+        'groups' => [
+            'operations' => 'عملیات روزانه',
+            'menu' => 'منو و میزها',
+            'customers' => 'مشتریان و بازاریابی',
+            'inventory' => 'انبار',
+            'insights' => 'گزارش‌ها و رویدادها',
+            'settings' => 'تنظیمات',
+        ],
         'dashboard' => 'داشبورد',
         'orders' => 'سفارش‌ها',
         'kitchen' => 'نمایشگر آشپزخانه',

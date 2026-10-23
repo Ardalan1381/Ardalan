@@ -488,6 +488,7 @@ return [
         'empty' => 'لا توجد طلبات في هذه الحالة.',
         'delayed' => 'متأخر',
         'elapsed_minutes' => 'منذ :minutes دقيقة',
+        'auto_refresh' => 'لا يوجد اتصال مباشر — تُحدَّث هذه الشاشة كل ٢٠ ثانية.',
         'mark_next' => 'تحديد كـ :status',
     ],
 

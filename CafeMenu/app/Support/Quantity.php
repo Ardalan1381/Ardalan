@@ -40,6 +40,21 @@ class Quantity
         return bccomp($a, $b, self::SCALE);
     }
 
+    /**
+     * Human-readable form of a stored decimal quantity for screens: trailing
+     * zeros dropped ("2000.0000" -> "2,000", "12.5000" -> "12.5"). Storage
+     * and arithmetic keep the full fixed-scale string.
+     */
+    public static function display(string|int|float|null $quantity): string
+    {
+        $value = (string) ($quantity ?? '0');
+        $negative = str_starts_with($value, '-');
+        [$whole, $fraction] = array_pad(explode('.', ltrim($value, '-')), 2, '');
+        $fraction = rtrim($fraction, '0');
+
+        return ($negative ? '-' : '').number_format((int) $whole).($fraction !== '' ? '.'.$fraction : '');
+    }
+
     public static function isNegative(string $a): bool
     {
         return self::compare($a, '0') < 0;

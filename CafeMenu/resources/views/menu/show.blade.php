@@ -51,7 +51,7 @@
                     <h1 class="text-xl font-bold text-gray-900 dark:text-gray-100">{{ $product->translate('name') }}</h1>
                     @if ($product->label)
                         <span class="shrink-0 rounded-full bg-secondary/10 px-2.5 py-1 text-xs font-medium text-secondary">
-                            {{ ucfirst($product->label) }}
+                            {{ __('admin.products.label_'.$product->label) }}
                         </span>
                     @endif
                 </div>

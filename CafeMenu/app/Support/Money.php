@@ -14,10 +14,29 @@ class Money
     public static function format(int $minorUnits): string
     {
         $settings = BusinessSetting::current();
-        $decimals = $settings->currency_minor_units;
-        $amount = $minorUnits / (10 ** $decimals);
 
-        return number_format($amount, $decimals).' '.$settings->currency;
+        return self::formatMinorUnits($minorUnits, $settings->currency_minor_units).' '.$settings->currency;
+    }
+
+    /**
+     * Integer-exact formatting: the whole and fractional parts are split
+     * with integer arithmetic instead of dividing into a float, which can
+     * round large amounts the wrong way (e.g. 90071992547409.93).
+     */
+    private static function formatMinorUnits(int $minorUnits, int $decimals): string
+    {
+        $sign = $minorUnits < 0 ? '-' : '';
+        $absolute = abs($minorUnits);
+
+        if ($decimals <= 0) {
+            return $sign.number_format($absolute);
+        }
+
+        $factor = 10 ** $decimals;
+        $whole = intdiv($absolute, $factor);
+        $fraction = str_pad((string) ($absolute % $factor), $decimals, '0', STR_PAD_LEFT);
+
+        return $sign.number_format($whole).'.'.$fraction;
     }
 
     /**
@@ -29,8 +48,6 @@ class Money
      */
     public static function formatAs(int $minorUnits, string $currencyCode, int $decimals, ?string $symbol = null): string
     {
-        $amount = $minorUnits / (10 ** $decimals);
-
-        return number_format($amount, $decimals).' '.($symbol ?: $currencyCode);
+        return self::formatMinorUnits($minorUnits, $decimals).' '.($symbol ?: $currencyCode);
     }
 }

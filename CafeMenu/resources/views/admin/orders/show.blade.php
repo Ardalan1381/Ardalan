@@ -80,7 +80,7 @@
     </dl>
 
     <div class="mt-8">
-        <div class="flex items-center justify-between">
+        <div class="flex flex-wrap items-center justify-between gap-3">
             <h2 class="text-sm font-semibold text-gray-900 dark:text-gray-100">{{ __('nav.admin.payments') }}</h2>
             <span class="text-sm text-gray-500 dark:text-gray-400">
                 {{ __('payments.balance_due') }}: {{ \App\Support\Money::format($order->balanceDue()) }}
@@ -90,7 +90,7 @@
         <div class="mt-2 rounded-lg border border-gray-200 dark:border-gray-700 divide-y divide-gray-100 dark:divide-gray-800">
             @forelse ($order->payments as $payment)
                 <div class="p-3 text-sm">
-                    <div class="flex items-center justify-between">
+                    <div class="flex flex-wrap items-center justify-between gap-3">
                         <div>
                             <p class="font-medium text-gray-900 dark:text-gray-100">
                                 {{ __('payments.methods.'.$payment->method) }}
@@ -258,7 +258,7 @@
             <div class="mt-2 space-y-3">
                 @foreach ($billSplit->parts as $part)
                     <div class="rounded-lg border border-gray-200 dark:border-gray-700 p-3 text-sm">
-                        <div class="flex items-center justify-between">
+                        <div class="flex flex-wrap items-center justify-between gap-3">
                             <p class="font-medium text-gray-900 dark:text-gray-100">{{ $part->label }}</p>
                             <x-badge :status="$part->status === 'paid' ? 'paid' : 'pending'">{{ __('payments.status.'.$part->status) }}</x-badge>
                         </div>

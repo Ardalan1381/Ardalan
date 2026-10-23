@@ -488,6 +488,7 @@ return [
         'empty' => 'No orders in this status.',
         'delayed' => 'Delayed',
         'elapsed_minutes' => ':minutes min ago',
+        'auto_refresh' => 'No live connection — this screen refreshes every 20 seconds.',
         'mark_next' => 'Mark :status',
     ],
 

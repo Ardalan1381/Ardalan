@@ -33,7 +33,7 @@
             <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 text-sm">
                 <div>
                     <p class="text-gray-500 dark:text-gray-400">{{ __('admin.inventory.current_stock') }}</p>
-                    <p class="font-medium text-gray-900 dark:text-gray-100">{{ $item->current_stock }}</p>
+                    <p class="font-medium tabular-nums text-gray-900 dark:text-gray-100">{{ \App\Support\Quantity::display($item->current_stock) }}</p>
                 </div>
                 <div>
                     <p class="text-gray-500 dark:text-gray-400">{{ __('admin.inventory.average_cost') }}</p>

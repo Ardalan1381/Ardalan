@@ -82,7 +82,7 @@
                 @php $entry = $displayCurrencies->get($code, []); @endphp
 
                 <div class="rounded-xl border border-gray-200 dark:border-gray-700 p-4">
-                    <div class="flex items-center justify-between">
+                    <div class="flex flex-wrap items-center justify-between gap-3">
                         <h3 class="text-sm font-semibold text-gray-900 dark:text-gray-100">{{ $localeName }}</h3>
                         <label class="flex items-center gap-1.5 text-xs text-gray-600 dark:text-gray-400">
                             <input type="checkbox" name="display_currencies[{{ $code }}][is_active]" value="1" @checked(old("display_currencies.$code.is_active", $entry['is_active'] ?? false))>

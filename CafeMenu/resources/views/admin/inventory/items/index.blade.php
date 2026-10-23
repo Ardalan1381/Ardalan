@@ -1,9 +1,9 @@
 @extends('layouts.admin')
 
 @section('admin-content')
-    <div class="flex items-center justify-between">
+    <div class="flex flex-wrap items-center justify-between gap-3">
         <h1 class="text-xl font-semibold text-gray-900 dark:text-gray-100">{{ __('nav.admin.inventory') }}</h1>
-        <div class="flex items-center gap-4">
+        <div class="flex flex-wrap items-center gap-x-4 gap-y-2">
             @can('inventory.view')
                 <a href="{{ route('admin.inventory.units.index') }}" class="text-sm text-gray-600 dark:text-gray-400 hover:underline">{{ __('admin.inventory.manage_units') }}</a>
                 <a href="{{ route('admin.inventory.categories.index') }}" class="text-sm text-gray-600 dark:text-gray-400 hover:underline">{{ __('admin.inventory.manage_categories') }}</a>
@@ -34,7 +34,7 @@
                 <td class="px-4 py-3">{{ $item->category?->name ?? __('admin.inventory.no_category') }}</td>
                 <td class="px-4 py-3">{{ $item->baseUnit->abbreviation }}</td>
                 <td class="px-4 py-3">
-                    {{ $item->current_stock }}
+                    {{ \App\Support\Quantity::display($item->current_stock) }}
                     @if ($item->isLowStock())
                         <x-badge variant="danger">{{ __('admin.inventory.low_stock') }}</x-badge>
                     @endif

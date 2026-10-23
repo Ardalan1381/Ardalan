@@ -2,6 +2,16 @@
 
 return [
     'admin' => [
+        'open_menu' => 'Open menu',
+        'close_menu' => 'Close menu',
+        'groups' => [
+            'operations' => 'Operations',
+            'menu' => 'Menu & tables',
+            'customers' => 'Customers & marketing',
+            'inventory' => 'Inventory',
+            'insights' => 'Reports & audit',
+            'settings' => 'Settings',
+        ],
         'dashboard' => 'Dashboard',
         'orders' => 'Orders',
         'kitchen' => 'Kitchen display',

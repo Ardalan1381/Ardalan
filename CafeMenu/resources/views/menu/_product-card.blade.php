@@ -26,7 +26,7 @@
             <p class="truncate text-sm font-semibold text-gray-900 dark:text-gray-100">{{ $product->translate('name') }}</p>
             @if ($product->label)
                 <span class="shrink-0 rounded-full bg-secondary/10 px-2 py-0.5 text-[11px] font-medium text-secondary">
-                    {{ ucfirst($product->label) }}
+                    {{ __('admin.products.label_'.$product->label) }}
                 </span>
             @endif
         </div>

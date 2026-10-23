@@ -32,7 +32,7 @@
                             @foreach ($purchase->items as $item)
                                 <tr>
                                     <td class="px-5 py-2">{{ $item->inventoryItem->name }}</td>
-                                    <td class="px-2 py-2 text-end whitespace-nowrap">{{ $item->quantity }} {{ $item->unit->abbreviation }}</td>
+                                    <td class="px-2 py-2 text-end whitespace-nowrap">{{ \App\Support\Quantity::display($item->quantity) }} {{ $item->unit->abbreviation }}</td>
                                     <td class="px-2 py-2 text-end whitespace-nowrap">{{ $item->quantity_received }} {{ $item->unit->abbreviation }}</td>
                                     <td class="px-2 py-2 text-end whitespace-nowrap">{{ bcsub((string) $item->quantity, (string) $item->quantity_received, 4) }} {{ $item->unit->abbreviation }}</td>
                                     <td class="px-2 py-2 text-end whitespace-nowrap">{{ \App\Support\Money::format($item->unit_cost) }}</td>

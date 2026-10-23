@@ -30,4 +30,13 @@ class MoneyTest extends TestCase
 
         $this->assertSame('45,000 IRR', Money::format(45000));
     }
+
+    public function test_formatting_is_integer_exact_for_large_and_negative_amounts(): void
+    {
+        BusinessSetting::current()->update(['currency' => 'USD', 'currency_minor_units' => 2]);
+
+        $this->assertSame('90,071,992,547,409.93 USD', Money::format(9007199254740993));
+        $this->assertSame('-12.05 USD', Money::format(-1205));
+        $this->assertSame('0.07 USD', Money::format(7));
+    }
 }

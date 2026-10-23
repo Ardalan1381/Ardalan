@@ -12,7 +12,7 @@
             <span class="text-sm font-medium text-gray-900 dark:text-gray-100">{{ $product->translate('name') }}</span>
             @if ($product->label)
                 <span class="ms-1 inline-block rounded-full bg-secondary/10 px-1.5 py-0.5 text-[10px] font-medium text-secondary align-middle">
-                    {{ ucfirst($product->label) }}
+                    {{ __('admin.products.label_'.$product->label) }}
                 </span>
             @endif
         </span>
@@ -31,7 +31,7 @@
     >
         @foreach ($product->optionGroups as $group)
             <fieldset data-option-group data-group-name="{{ $group->translate('name') }}" data-min="{{ $group->min_select }}" data-max="{{ $group->max_select }}">
-                <div class="flex items-center justify-between">
+                <div class="flex flex-wrap items-center justify-between gap-3">
                     <legend class="text-xs font-semibold text-gray-700 dark:text-gray-300">{{ $group->translate('name') }}</legend>
                     <span class="text-[11px] text-gray-500 dark:text-gray-400">
                         {{ $group->is_required ? __('menu.required') : __('menu.optional') }}

@@ -1,9 +1,9 @@
 @extends('layouts.admin')
 
 @section('admin-content')
-    <div class="flex items-center justify-between">
+    <div class="flex flex-wrap items-center justify-between gap-3">
         <h1 class="text-xl font-semibold text-gray-900 dark:text-gray-100">{{ __('admin.customer_groups.title') }}</h1>
-        <div class="flex items-center gap-4">
+        <div class="flex flex-wrap items-center gap-x-4 gap-y-2">
             <a href="{{ route('admin.customers.index') }}" class="text-sm text-gray-600 dark:text-gray-400 hover:underline">{{ __('nav.admin.customers') }}</a>
             @can('create', \App\Models\CustomerGroup::class)
                 <x-button href="{{ route('admin.customer-groups.create') }}">{{ __('admin.customer_groups.new') }}</x-button>

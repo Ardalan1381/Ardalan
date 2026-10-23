@@ -1,5 +1,7 @@
 @extends('layouts.admin')
 
+@section('focus-mode', '1')
+
 @section('admin-content')
     @vite('resources/js/pos.js')
 

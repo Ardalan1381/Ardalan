@@ -89,3 +89,38 @@
     --color-danger-subtle: oklch(0.3 0.08 25);
     --color-info-subtle: oklch(0.28 0.05 240);
 }
+
+/* Admin sidebar groups hide themselves when no link inside is permitted. */
+.nav-group:not(:has(a)) {
+    display: none;
+}
+
+/*
+ * Design-system baseline (see docs/engineering/DESIGN_SYSTEM.md).
+ *
+ * Every interactive element gets a clearly visible keyboard focus ring in
+ * the business's primary colour; mouse/touch focus stays quiet.
+ */
+@layer base {
+    :where(a, button, input, select, textarea, summary, [tabindex]):focus-visible {
+        outline: 2px solid var(--color-primary, #6366f1);
+        outline-offset: 2px;
+    }
+
+    /* Numbers in tables and totals line up column-wise. */
+    table td,
+    table th {
+        font-variant-numeric: tabular-nums;
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+        *,
+        *::before,
+        *::after {
+            transition-duration: 0.01ms !important;
+            animation-duration: 0.01ms !important;
+            animation-iteration-count: 1 !important;
+            scroll-behavior: auto !important;
+        }
+    }
+}

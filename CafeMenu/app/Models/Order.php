@@ -165,7 +165,17 @@ class Order extends Model
             return false;
         }
 
-        return $this->status_changed_at->diffInMinutes(now()) > $thresholdMinutes;
+        return $this->minutesInCurrentStatus() > $thresholdMinutes;
+    }
+
+    /**
+     * Whole minutes spent in the current status. Carbon 3's diffInMinutes()
+     * returns a float, which the Kitchen Display used to print verbatim
+     * ("1.9238748333333 minutes ago").
+     */
+    public function minutesInCurrentStatus(): int
+    {
+        return $this->status_changed_at ? (int) floor(abs($this->status_changed_at->diffInMinutes(now()))) : 0;
     }
 
     /**

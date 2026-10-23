@@ -1,9 +1,9 @@
 @extends('layouts.admin')
 
 @section('admin-content')
-    <div class="flex items-center justify-between">
+    <div class="flex flex-wrap items-center justify-between gap-3">
         <h1 class="text-xl font-semibold text-gray-900 dark:text-gray-100">{{ __('admin.waste.title') }}</h1>
-        <div class="flex items-center gap-4">
+        <div class="flex flex-wrap items-center gap-x-4 gap-y-2">
             <a href="{{ route('admin.inventory.items.index') }}" class="text-sm text-gray-600 dark:text-gray-400 hover:underline">{{ __('nav.admin.inventory') }}</a>
             @can('create', \App\Models\WasteRecord::class)
                 <x-button href="{{ route('admin.waste-records.create') }}">{{ __('admin.waste.new') }}</x-button>
@@ -16,7 +16,7 @@
             <tr>
                 <td class="px-4 py-3">{{ \App\Support\LocalizedDate::format($waste->wasted_at) }}</td>
                 <td class="px-4 py-3">{{ $waste->inventoryItem->name }}</td>
-                <td class="px-4 py-3">{{ $waste->quantity }} {{ $waste->inventoryItem->baseUnit->abbreviation }}</td>
+                <td class="px-4 py-3">{{ \App\Support\Quantity::display($waste->quantity) }} {{ $waste->inventoryItem->baseUnit->abbreviation }}</td>
                 <td class="px-4 py-3">{{ __('admin.waste.reason_'.$waste->reason) }}</td>
                 <td class="px-4 py-3">{{ $waste->createdBy?->name ?? '—' }}</td>
             </tr>

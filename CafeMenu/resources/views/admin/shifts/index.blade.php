@@ -5,7 +5,7 @@
 
     @if ($currentShift)
         <x-card class="mt-6 max-w-lg" :title="__('admin.shifts.current_shift')">
-            <div class="flex items-center justify-between">
+            <div class="flex flex-wrap items-center justify-between gap-3">
                 <p class="text-sm text-gray-600 dark:text-gray-400">
                     {{ __('admin.shifts.current_shift_open_since', ['time' => \App\Support\LocalizedDate::format($currentShift->opened_at)]) }}
                 </p>
