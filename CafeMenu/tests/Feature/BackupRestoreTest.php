@@ -17,7 +17,8 @@ class BackupRestoreTest extends TestCase
 {
     public function test_backup_is_rejected_on_a_non_mysql_connection(): void
     {
-        // The test environment's default connection is sqlite.
+        $this->pretendDefaultConnectionIsSqlite();
+
         $this->artisan('app:backup')->assertExitCode(1);
     }
 
@@ -26,10 +27,22 @@ class BackupRestoreTest extends TestCase
         $fixture = storage_path('app/backups/does-not-matter.tar.gz');
         File::ensureDirectoryExists(dirname($fixture));
         File::put($fixture, 'not a real archive');
+        $this->pretendDefaultConnectionIsSqlite();
 
         $this->artisan('app:restore', ['archive' => $fixture, '--force' => true])->assertExitCode(1);
 
         File::delete($fixture);
+    }
+
+    /**
+     * The suite can also run against MariaDB/MySQL (see
+     * docs/engineering/TESTING.md), so the "unsupported driver" cases set
+     * the driver explicitly instead of assuming the default is SQLite. Only
+     * the config is changed — the already-open test connection is untouched.
+     */
+    private function pretendDefaultConnectionIsSqlite(): void
+    {
+        config(['database.connections.'.config('database.default').'.driver' => 'sqlite']);
     }
 
     public function test_restore_fails_fast_when_the_archive_file_does_not_exist(): void

@@ -100,9 +100,25 @@ class BusinessSetting extends Model
      */
     public static function current(): self
     {
-        return self::query()->firstOrCreate(['id' => 1], [
-            'name' => config('app.name'),
-        ]);
+        $existing = self::query()->find(1);
+
+        if ($existing) {
+            return $existing;
+        }
+
+        // 'id' is not fillable, so firstOrCreate(['id' => 1]) would silently
+        // drop it and take the next AUTO_INCREMENT value — once that has
+        // moved past 1 (a rolled-back insert on MySQL, a deleted row) every
+        // call would create yet another row. Force the id explicitly, and
+        // tolerate a concurrent request having inserted it first.
+        try {
+            $settings = new self(['name' => config('app.name')]);
+            $settings->forceFill(['id' => 1])->save();
+
+            return $settings;
+        } catch (\Illuminate\Database\UniqueConstraintViolationException) {
+            return self::query()->findOrFail(1);
+        }
     }
 
     /**
