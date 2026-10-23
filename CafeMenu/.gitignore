@@ -23,3 +23,6 @@
 Homestead.json
 Homestead.yaml
 Thumbs.db
+
+# The template is meant to be committed (the parent repo ignores .env.*).
+!.env.example
