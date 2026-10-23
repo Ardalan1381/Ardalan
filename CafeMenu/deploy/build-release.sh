@@ -32,7 +32,10 @@ git -C "$TOPLEVEL" archive --format=tar "HEAD:${PREFIX%/}" | tar -x -C "$STAGE"
 rm -rf "$STAGE/tests" "$STAGE/docs/engineering/screenshots" "$STAGE/CLAUDE.md" "$STAGE/phpunit.xml"
 
 cd "$STAGE"
-composer install --no-dev --optimize-autoloader --no-interaction --no-progress --no-scripts
+composer install --no-dev --optimize-autoloader --prefer-dist --no-interaction --no-progress --no-scripts
+# If Composer had to fall back to git clones (no dist access), drop the VCS
+# metadata: it is hundreds of MB and has no place on a server.
+find vendor -type d -name .git -prune -exec rm -rf {} +
 php -r "file_exists('.env') || copy('.env.example', '.env');"
 # Throwaway build-time .env: only the public Reverb settings matter here.
 for key in REVERB_APP_KEY REVERB_HOST REVERB_PORT REVERB_SCHEME; do
