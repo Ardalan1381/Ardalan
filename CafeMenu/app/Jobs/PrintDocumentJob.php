@@ -9,6 +9,7 @@ use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Queue\InteractsWithQueue;
+use Illuminate\Queue\Jobs\SyncJob;
 use Illuminate\Queue\SerializesModels;
 
 /**
@@ -46,7 +47,15 @@ class PrintDocumentJob implements ShouldQueue
         } catch (\Throwable $e) {
             $this->printJob->update(['status' => 'failed', 'error_message' => $e->getMessage()]);
 
-            throw $e;
+            // On a real queue, rethrowing lets the worker retry with
+            // backoff. On the 'sync' driver (installs without a queue
+            // worker) the job runs inside the web request that confirmed
+            // the order, so rethrowing would turn an offline printer into a
+            // 500 for a status change that has already been committed. The
+            // failed PrintJob row stays visible for a manual reprint.
+            if (! $this->job instanceof SyncJob) {
+                throw $e;
+            }
         }
     }
 }

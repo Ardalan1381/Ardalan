@@ -265,6 +265,27 @@ class PrintingEngineTest extends TestCase
         $this->assertSame(1, $printJob->fresh()->attempts);
     }
 
+    public function test_on_the_sync_queue_an_unreachable_printer_does_not_fail_the_request(): void
+    {
+        [$order] = $this->dineInOrderWithCategories();
+
+        $printer = Printer::create(['name' => 'Unreachable', 'connection_type' => 'network', 'ip_address' => '127.0.0.1', 'port' => 1, 'paper_width' => '80mm']);
+        $printJob = PrintJob::create([
+            'printable_type' => Order::class,
+            'printable_id' => $order->id,
+            'document_type' => 'kitchen_docket',
+            'category_id' => null,
+            'printer_id' => $printer->id,
+            'status' => 'queued',
+        ]);
+
+        // Runs on the 'sync' connection, as in a request without a worker.
+        PrintDocumentJob::dispatchSync($printJob);
+
+        $this->assertSame('failed', $printJob->fresh()->status);
+        $this->assertNotNull($printJob->fresh()->error_message);
+    }
+
     // ---- Permissions ----
 
     public function test_only_owner_and_manager_have_printers_manage_permission(): void
