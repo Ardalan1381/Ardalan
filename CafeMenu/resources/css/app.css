@@ -13,10 +13,9 @@
 @source '../**/*.js';
 
 /*
- * Persian text falls back to Tahoma (near-universally installed, legible
- * Persian glyphs) until real Vazirmatn woff2 files are placed under
- * public/fonts/ — the @font-face rules below then activate automatically
- * with no further code changes, per public/fonts/README.md.
+ * Vazirmatn is bundled under public/fonts/ (SIL OFL, see README.md there),
+ * so Persian/Arabic text never depends on an external font CDN. Tahoma
+ * remains the fallback while the woff2 file is still loading.
  */
 @font-face {
     font-family: 'Vazirmatn';
@@ -30,6 +29,14 @@
     font-family: 'Vazirmatn';
     src: url('/fonts/Vazirmatn-Medium.woff2') format('woff2');
     font-weight: 500;
+    font-style: normal;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: 'Vazirmatn';
+    src: url('/fonts/Vazirmatn-SemiBold.woff2') format('woff2');
+    font-weight: 600;
     font-style: normal;
     font-display: swap;
 }
