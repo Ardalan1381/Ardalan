@@ -29,6 +29,20 @@ return [
     'pending_confirmation' => 'بانتظار التأكيد',
     'confirm_refund' => 'استرجاع هذه الدفعة؟',
     'refund_method' => 'طريقة الاسترجاع',
+    'refund_settlement' => [
+        'status_label' => 'الحالة',
+        'statuses' => [
+            'pending' => 'بانتظار التسوية',
+            'completed' => 'مكتمل',
+            'failed' => 'لم يتم',
+        ],
+        'pending_hint' => 'أعد المبلغ خارج التطبيق (جهاز البطاقة، لوحة البوابة، رصيد المتجر) ثم أكّد ذلك هنا.',
+        'confirm_settled' => 'تأكيد الاسترجاع',
+        'mark_not_settled' => 'لم يتم الاسترجاع',
+        'external_reference' => 'المرجع الخارجي',
+        'confirm_settled_prompt' => 'هل تؤكد أن هذا المبلغ أُعيد فعلاً إلى العميل؟',
+        'resolved_by' => 'بواسطة :name',
+    ],
     'refund_methods' => [
         'original_payment_method' => 'طريقة الدفع الأصلية',
         'cash' => 'نقدًا',

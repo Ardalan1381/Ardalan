@@ -13,12 +13,18 @@ class TableSessionService
 {
     /**
      * Opens a new session for the table, or returns its already-open one.
-     * Locked to prevent two concurrent dine-in checkouts from creating
-     * duplicate open sessions for the same table.
+     *
+     * Serialised on the TABLE row: locking the (possibly absent) open
+     * session row is not enough — on InnoDB, two transactions can both
+     * take a gap lock on "no open session yet" and then deadlock (or, at
+     * READ COMMITTED, both insert). The unique open-session index added in
+     * 2026_10_23_100001 is the last line of defence behind this lock.
      */
     public function openOrReuse(Table $table, ?User $openedBy = null): TableSession
     {
         return DB::transaction(function () use ($table, $openedBy) {
+            Table::query()->whereKey($table->id)->lockForUpdate()->first();
+
             $existing = TableSession::query()->where('table_id', $table->id)->open()->lockForUpdate()->first();
 
             if ($existing) {
@@ -59,6 +65,8 @@ class TableSessionService
             if ($targetTable->id === $session->table_id) {
                 throw ValidationException::withMessages(['table_id' => 'Select a different table to transfer to.']);
             }
+
+            Table::query()->whereKey($targetTable->id)->lockForUpdate()->first();
 
             $targetHasOpenSession = TableSession::query()->where('table_id', $targetTable->id)->open()->lockForUpdate()->exists();
 

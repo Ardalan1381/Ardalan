@@ -39,6 +39,7 @@ class OrderController extends Controller
             'statusHistory.changedBy',
             'payments.recordedBy',
             'payments.refunds.processedBy',
+            'payments.refunds.resolvedBy',
             'billSplits.parts.items.orderItem',
             'billSplits.parts.payments',
             'invoice',

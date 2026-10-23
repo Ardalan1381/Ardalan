@@ -11,6 +11,14 @@
         <testsuite name="Feature">
             <directory>tests/Feature</directory>
         </testsuite>
+        <!--
+            Multi-process race tests. They skip themselves on SQLite and
+            only run when DB_CONNECTION points at MySQL/MariaDB — see
+            docs/engineering/TESTING.md.
+        -->
+        <testsuite name="Concurrency">
+            <directory>tests/Concurrency</directory>
+        </testsuite>
     </testsuites>
     <source>
         <include>

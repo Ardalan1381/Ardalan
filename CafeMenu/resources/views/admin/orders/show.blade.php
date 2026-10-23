@@ -136,14 +136,48 @@
                     @if ($payment->refunds->isNotEmpty())
                         <div class="mt-2 space-y-1 border-t border-gray-100 dark:border-gray-800 pt-2">
                             @foreach ($payment->refunds as $refund)
-                                <p class="text-xs text-gray-500 dark:text-gray-400">
-                                    {{ __('payments.refund') }}: {{ \App\Support\Money::format($refund->amount) }}
-                                    @if ($refund->reason)
-                                        &mdash; {{ $refund->reason }}
+                                <div class="text-xs text-gray-500 dark:text-gray-400" data-refund-status="{{ $refund->status }}">
+                                    <p>
+                                        {{ __('payments.refund') }}: {{ \App\Support\Money::format($refund->amount) }}
+                                        <span @class([
+                                            'ms-1 inline-flex items-center rounded-full px-2 py-0.5 font-medium',
+                                            'bg-amber-100 text-amber-800 dark:bg-amber-900/40 dark:text-amber-200' => $refund->status === 'pending',
+                                            'bg-emerald-100 text-emerald-800 dark:bg-emerald-900/40 dark:text-emerald-200' => $refund->status === 'completed',
+                                            'bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-300' => $refund->status === 'failed',
+                                        ])>{{ __('payments.refund_settlement.statuses.'.$refund->status) }}</span>
+                                        @if ($refund->reason)
+                                            &mdash; {{ $refund->reason }}
+                                        @endif
+                                        &middot; {{ __('orders.admin.by', ['name' => $refund->processedBy?->name ?? '—']) }}
+                                        &middot; {{ \App\Support\LocalizedDate::format($refund->processed_at) }}
+                                        @if ($refund->resolved_at)
+                                            &middot; {{ __('payments.refund_settlement.resolved_by', ['name' => $refund->resolvedBy?->name ?? '—']) }}
+                                            @if ($refund->external_reference)
+                                                (<span dir="ltr">{{ $refund->external_reference }}</span>)
+                                            @endif
+                                        @endif
+                                    </p>
+
+                                    @if ($refund->isPending())
+                                        <p class="mt-1 text-amber-700 dark:text-amber-300">{{ __('payments.refund_settlement.pending_hint') }}</p>
+                                        @can('refund', $payment)
+                                            <form method="POST" action="{{ route('admin.refunds.resolve', $refund) }}" class="mt-1 flex flex-wrap items-end gap-2" data-confirm="{{ __('payments.refund_settlement.confirm_settled_prompt') }}">
+                                                @csrf
+                                                @method('PATCH')
+                                                <input type="hidden" name="outcome" value="completed">
+                                                <label class="sr-only" for="refund-ref-{{ $refund->id }}">{{ __('payments.refund_settlement.external_reference') }}</label>
+                                                <input id="refund-ref-{{ $refund->id }}" type="text" name="external_reference" placeholder="{{ __('payments.refund_settlement.external_reference') }}" class="w-44 rounded-lg border-gray-300 dark:border-gray-600 text-xs shadow-sm">
+                                                <button type="submit" class="font-medium text-emerald-700 dark:text-emerald-300 hover:underline">{{ __('payments.refund_settlement.confirm_settled') }}</button>
+                                            </form>
+                                            <form method="POST" action="{{ route('admin.refunds.resolve', $refund) }}" class="mt-1">
+                                                @csrf
+                                                @method('PATCH')
+                                                <input type="hidden" name="outcome" value="failed">
+                                                <button type="submit" class="text-danger hover:underline">{{ __('payments.refund_settlement.mark_not_settled') }}</button>
+                                            </form>
+                                        @endcan
                                     @endif
-                                    &middot; {{ __('orders.admin.by', ['name' => $refund->processedBy?->name ?? '—']) }}
-                                    &middot; {{ \App\Support\LocalizedDate::format($refund->processed_at) }}
-                                </p>
+                                </div>
                             @endforeach
                         </div>
                     @endif

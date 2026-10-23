@@ -48,6 +48,11 @@ class DiscountEngine
         foreach ($this->pickWinners($candidates) as $discount) {
             /** @var Discount $locked */
             $locked = Discount::query()->lockForUpdate()->find($discount->id);
+
+            if (! $locked || ! $locked->is_active || ! $this->eligibilityChecker->withinUsageLimits($locked, $customer, lockingRead: true)) {
+                continue;
+            }
+
             $locked->setRelations($discount->getRelations());
 
             $applied = $this->calculator->apply($locked, $lineItems, $subtotal);

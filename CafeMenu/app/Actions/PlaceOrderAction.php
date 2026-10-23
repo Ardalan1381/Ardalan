@@ -11,6 +11,7 @@ use App\Models\User;
 use App\Notifications\NewOrderNotification;
 use App\Services\Orders\CartPricer;
 use App\Services\TableSessionService;
+use Illuminate\Database\UniqueConstraintViolationException;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Notification;
 use Illuminate\Validation\ValidationException;
@@ -33,6 +34,77 @@ class PlaceOrderAction
      */
     public function execute(array $data, ?int $tableId): Order
     {
+        // Idempotency: a checkout carrying a key that already produced an
+        // order (double-click, network retry, browser resubmit) gets that
+        // same order back instead of a duplicate. Checked before any of the
+        // availability rules below, so a retry still succeeds even if, say,
+        // ordering was switched off a second after the first attempt.
+        $idempotencyKey = $data['idempotency_key'] ?? null;
+        $fingerprint = $idempotencyKey ? $this->fingerprint($data, $tableId) : null;
+
+        if ($idempotencyKey && ($existing = $this->replay($idempotencyKey, $fingerprint))) {
+            return $existing;
+        }
+
+        try {
+            return $this->place($data, $tableId, $idempotencyKey, $fingerprint);
+        } catch (UniqueConstraintViolationException $e) {
+            // A concurrent request with the same key won the insert race;
+            // this transaction has rolled back (including any discount slot
+            // it reserved), so hand back the order the winner created.
+            if ($idempotencyKey && ($existing = $this->replay($idempotencyKey, $fingerprint))) {
+                return $existing;
+            }
+
+            throw $e;
+        }
+    }
+
+    private function replay(string $idempotencyKey, string $fingerprint): ?Order
+    {
+        $existing = Order::query()->where('idempotency_key', $idempotencyKey)->first();
+
+        if ($existing && ! hash_equals((string) $existing->idempotency_fingerprint, $fingerprint)) {
+            throw ValidationException::withMessages([
+                'idempotency_key' => 'This checkout attempt was already used for a different order. Please reload the page and try again.',
+            ]);
+        }
+
+        return $existing;
+    }
+
+    /**
+     * Hash of everything that defines the order, so replaying a key is
+     * only accepted for the identical request.
+     *
+     * @param  array<string, mixed>  $data
+     */
+    private function fingerprint(array $data, ?int $tableId): string
+    {
+        unset($data['idempotency_key']);
+        $data['_table_id'] = $tableId;
+
+        return hash('sha256', json_encode($this->sortRecursive($data)));
+    }
+
+    private function sortRecursive(mixed $value): mixed
+    {
+        if (! is_array($value)) {
+            return $value;
+        }
+
+        if (! array_is_list($value)) {
+            ksort($value);
+        }
+
+        return array_map(fn ($item) => $this->sortRecursive($item), $value);
+    }
+
+    /**
+     * @param  array<string, mixed>  $data
+     */
+    private function place(array $data, ?int $tableId, ?string $idempotencyKey, ?string $fingerprint): Order
+    {
         $business = BusinessSetting::current();
 
         // A separate master switch from accepts_dine_in/takeaway/pickup/
@@ -51,7 +123,7 @@ class PlaceOrderAction
             $table = $this->assertTableAvailable($tableId);
         }
 
-        $order = DB::transaction(function () use ($data, $table, $business) {
+        $order = DB::transaction(function () use ($data, $table, $business, $idempotencyKey, $fingerprint) {
             $tableSession = $table ? $this->tableSessionService->openOrReuse($table) : null;
 
             $priced = $this->cartPricer->price($data['items'], $business);
@@ -73,6 +145,8 @@ class PlaceOrderAction
                 'status' => 'pending',
                 'status_changed_at' => now(),
                 'payment_status' => 'pending',
+                'idempotency_key' => $idempotencyKey,
+                'idempotency_fingerprint' => $fingerprint,
             ]);
 
             $order->statusHistory()->create([

@@ -21,6 +21,9 @@ class CheckoutRequest extends FormRequest
     {
         return [
             'type' => ['required', Rule::in(['dine_in', 'takeaway', 'pickup', 'delivery'])],
+            // Optional so older cached cart scripts keep working; the
+            // current cart.js always sends one per checkout attempt.
+            'idempotency_key' => ['nullable', 'string', 'uuid'],
             'customer_name' => ['required_unless:type,dine_in', 'nullable', 'string', 'max:255'],
             'customer_phone' => ['required_unless:type,dine_in', 'nullable', 'string', 'max:50'],
             'delivery_address' => ['required_if:type,delivery', 'nullable', 'string', 'max:1000'],

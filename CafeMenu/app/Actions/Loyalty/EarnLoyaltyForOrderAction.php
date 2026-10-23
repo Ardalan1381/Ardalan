@@ -2,6 +2,7 @@
 
 namespace App\Actions\Loyalty;
 
+use App\Models\LoyaltyLedgerEntry;
 use App\Models\LoyaltyRule;
 use App\Models\Order;
 use App\Services\Loyalty\LoyaltyLedgerService;
@@ -9,8 +10,10 @@ use Illuminate\Support\Carbon;
 
 /**
  * Awards loyalty points for a completed order. Wired into
- * TransitionOrderStatusAction on the 'completed' transition, which is
- * terminal — this can never double-fire for the same order.
+ * TransitionOrderStatusAction on the 'completed' transition, which runs
+ * against a locked order row and is terminal. As a second, independent
+ * guard, a rule that already has an 'earn' entry for this order is skipped,
+ * so a retried or replayed call can never award the same points twice.
  */
 class EarnLoyaltyForOrderAction
 {
@@ -32,7 +35,18 @@ class EarnLoyaltyForOrderAction
             ->get()
             ->filter(fn (LoyaltyRule $rule) => $this->withinActivePeriod($rule, $now));
 
+        $alreadyEarnedRuleIds = LoyaltyLedgerEntry::query()
+            ->where('order_id', $order->id)
+            ->where('type', 'earn')
+            ->pluck('loyalty_rule_id')
+            ->map(fn ($id) => (int) $id)
+            ->all();
+
         foreach ($rules as $rule) {
+            if (in_array($rule->id, $alreadyEarnedRuleIds, true)) {
+                continue;
+            }
+
             $points = $this->pointsEarned($rule, $order);
 
             if ($points > 0) {

@@ -3,6 +3,7 @@
 namespace App\Actions;
 
 use App\Actions\Shifts\RecordCashMovementAction;
+use App\Models\Order;
 use App\Models\Payment;
 use App\Models\Shift;
 use App\Models\User;
@@ -29,33 +30,41 @@ class UpdatePaymentStatusAction
 
     public function execute(Payment $payment, string $newStatus, ?User $actor = null): Payment
     {
-        $allowed = self::TRANSITIONS[$payment->status] ?? [];
+        return DB::transaction(function () use ($payment, $newStatus, $actor) {
+            // Lock order first, then payment — the same order every payment
+            // write uses (RecordPaymentAction, refunds, gateway callbacks),
+            // so concurrent writers queue instead of deadlocking, and the
+            // status/overpayment checks below see committed state.
+            Order::query()->lockForUpdate()->findOrFail($payment->order_id);
+            /** @var Payment $locked */
+            $locked = Payment::query()->lockForUpdate()->findOrFail($payment->id);
+            $fromStatus = $locked->status;
 
-        if (! in_array($newStatus, $allowed, true)) {
-            throw ValidationException::withMessages([
-                'status' => "Cannot move a payment from \"{$payment->status}\" to \"{$newStatus}\".",
-            ]);
-        }
-
-        $fromStatus = $payment->status;
-
-        return DB::transaction(function () use ($payment, $newStatus, $fromStatus, $actor) {
-            if ($newStatus === 'paid') {
-                $this->assertNoOverpayment($payment);
+            if (! in_array($newStatus, self::TRANSITIONS[$fromStatus] ?? [], true)) {
+                throw ValidationException::withMessages([
+                    'status' => "Cannot move a payment from \"{$fromStatus}\" to \"{$newStatus}\".",
+                ]);
             }
 
-            $payment->update([
+            if ($newStatus === 'paid') {
+                $this->assertNoOverpayment($locked);
+            }
+
+            $locked->update([
                 'status' => $newStatus,
-                'paid_at' => $newStatus === 'paid' ? now() : $payment->paid_at,
+                'paid_at' => $newStatus === 'paid' ? now() : $locked->paid_at,
             ]);
 
-            $payment->order->syncPaymentStatus();
+            $locked->order->syncPaymentStatus();
+            $locked->billSplitPart?->recalculate();
 
-            $this->recordCashMovementIfApplicable($payment, $newStatus, $actor);
+            $this->recordCashMovementIfApplicable($locked, $newStatus, $actor);
 
-            $this->auditLogger->log('payment.status_changed', $payment, old: ['status' => $fromStatus], new: ['status' => $newStatus]);
+            $this->auditLogger->log('payment.status_changed', $locked, old: ['status' => $fromStatus], new: ['status' => $newStatus]);
 
-            return $payment;
+            $payment->setRawAttributes($locked->getAttributes(), true);
+
+            return $locked;
         });
     }
 
@@ -85,7 +94,9 @@ class UpdatePaymentStatusAction
 
     private function assertNoOverpayment(Payment $payment): void
     {
-        $otherPaid = $payment->order->payments()->paid()->whereKeyNot($payment->id)->sum('amount');
+        // Net of completed refunds, the same basis RecordPaymentAction uses —
+        // money that was refunded no longer counts towards the order total.
+        $otherPaid = $payment->order->totalPaid();
 
         if ($otherPaid + $payment->amount > $payment->order->grand_total) {
             throw ValidationException::withMessages([

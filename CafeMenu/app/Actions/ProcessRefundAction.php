@@ -3,6 +3,7 @@
 namespace App\Actions;
 
 use App\Actions\Shifts\RecordCashMovementAction;
+use App\Models\Order;
 use App\Models\Payment;
 use App\Models\Refund;
 use App\Models\Shift;
@@ -17,11 +18,13 @@ use Illuminate\Validation\ValidationException;
  * change) — this is the historical proof the money was originally taken;
  * Refund rows are the append-only record of money given back.
  *
- * No real payment-gateway reversal call is made here: none of the three
- * gateway integrations in this app (Mellat/Zarinpal/Zibal) expose a
- * reversal/refund API today, so an "original_payment_method" refund on an
- * online payment is bookkeeping-only — staff must still action the actual
- * reversal from the gateway's own dashboard.
+ * No payment-gateway reversal call is made here: none of the three gateway
+ * integrations in this app (Mellat/Zarinpal/Zibal) has a refund API wired
+ * up. So only a refund paid out in cash at the counter is recorded as
+ * 'completed' straight away. Every other refund (card/online reversal,
+ * store credit) is recorded as 'pending' — it reserves the amount but does
+ * not reduce what the order counts as paid — until a staff member confirms
+ * the money was actually returned elsewhere (ResolveRefundAction).
  */
 class ProcessRefundAction
 {
@@ -35,12 +38,6 @@ class ProcessRefundAction
      */
     public function execute(Payment $payment, array $data, User $actor): Refund
     {
-        if ($payment->status !== 'paid') {
-            throw ValidationException::withMessages([
-                'payment' => 'Only a paid payment can be refunded.',
-            ]);
-        }
-
         $amount = (int) $data['amount'];
 
         if ($amount <= 0) {
@@ -48,8 +45,16 @@ class ProcessRefundAction
         }
 
         return DB::transaction(function () use ($payment, $data, $actor, $amount) {
+            // Same lock order as every other payment write: order, then payment.
+            Order::query()->lockForUpdate()->findOrFail($payment->order_id);
             /** @var Payment $locked */
             $locked = Payment::query()->lockForUpdate()->findOrFail($payment->id);
+
+            if ($locked->status !== 'paid') {
+                throw ValidationException::withMessages([
+                    'payment' => 'Only a paid payment can be refunded.',
+                ]);
+            }
 
             if ($amount > $locked->refundableAmount()) {
                 throw ValidationException::withMessages([
@@ -58,13 +63,14 @@ class ProcessRefundAction
             }
 
             $refundMethod = $data['refund_method'] ?? 'original_payment_method';
+            $completed = Refund::settlesImmediately($refundMethod, $locked);
 
             $refund = Refund::create([
                 'payment_id' => $locked->id,
                 'order_id' => $locked->order_id,
                 'amount' => $amount,
                 'reason' => $data['reason'] ?? null,
-                'status' => 'completed',
+                'status' => $completed ? 'completed' : 'pending',
                 'refund_method' => $refundMethod,
                 'processed_by_user_id' => $actor->id,
                 'processed_at' => now(),
@@ -72,11 +78,9 @@ class ProcessRefundAction
 
             $locked->order->syncPaymentStatus();
 
-            if ($locked->bill_split_part_id) {
-                $this->resyncSplitPart($locked);
-            }
+            $locked->billSplitPart?->recalculate();
 
-            if ($refundMethod === 'cash') {
+            if ($completed && ($refundMethod === 'cash' || $locked->method === 'cash')) {
                 $shift = Shift::query()->where('user_id', $actor->id)->open()->first();
 
                 if ($shift) {
@@ -89,22 +93,10 @@ class ProcessRefundAction
                 'order_id' => $locked->order_id,
                 'amount' => $amount,
                 'refund_method' => $refundMethod,
+                'status' => $refund->status,
             ]);
 
             return $refund;
         });
-    }
-
-    private function resyncSplitPart(Payment $payment): void
-    {
-        $part = $payment->billSplitPart;
-        $grossPaid = $part->payments()->paid()->sum('amount');
-        $totalRefunded = Refund::whereIn('payment_id', $part->payments()->pluck('id'))->where('status', 'completed')->sum('amount');
-        $netPaid = max(0, $grossPaid - $totalRefunded);
-
-        $part->update([
-            'amount_paid' => $netPaid,
-            'status' => $netPaid >= $part->amount_due ? 'paid' : 'pending',
-        ]);
     }
 }

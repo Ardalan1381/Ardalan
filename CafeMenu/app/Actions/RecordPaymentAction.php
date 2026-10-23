@@ -37,6 +37,11 @@ class RecordPaymentAction
         $status = $data['status'] ?? 'pending';
 
         return DB::transaction(function () use ($order, $data, $user, $amount, $status) {
+            // Every payment write for an order serialises on the order row,
+            // so two cashiers (or a retried request) cannot both pass the
+            // overpayment check against the same outstanding balance.
+            $order = Order::query()->lockForUpdate()->findOrFail($order->id);
+
             if ($status === 'paid') {
                 $this->assertNoOverpayment($order, $amount);
             }

@@ -4,6 +4,7 @@ namespace App\Actions\Billing;
 
 use App\Actions\RecordPaymentAction;
 use App\Models\BillSplitPart;
+use App\Models\Order;
 use App\Models\Payment;
 use App\Models\User;
 use Illuminate\Support\Facades\DB;
@@ -27,36 +28,32 @@ class RecordSplitPaymentAction
      */
     public function execute(BillSplitPart $part, array $data, User $actor): Payment
     {
-        if ($part->status === 'paid') {
-            throw ValidationException::withMessages(['part' => 'This part has already been paid in full.']);
-        }
-
         $amount = (int) $data['amount'];
         $status = $data['status'] ?? 'pending';
 
-        if ($status === 'paid' && $amount > $part->balanceDue()) {
-            throw ValidationException::withMessages([
-                'amount' => "This payment would exceed this part's remaining balance ({$part->balanceDue()}).",
-            ]);
-        }
-
         return DB::transaction(function () use ($part, $data, $actor, $amount, $status) {
-            $payment = $this->recordPayment->execute($part->billSplit->order, $data, $actor);
-            $payment->update(['bill_split_part_id' => $part->id]);
+            // Order row first (the lock every payment write takes), then the
+            // part — so the balance check below sees committed totals and two
+            // concurrent split payments cannot both fit into the same balance.
+            Order::query()->lockForUpdate()->findOrFail($part->billSplit->order_id);
+            /** @var BillSplitPart $locked */
+            $locked = BillSplitPart::query()->lockForUpdate()->findOrFail($part->id);
 
-            if ($status === 'paid') {
-                $newAmountPaid = $part->amount_paid + $amount;
-                $part->update([
-                    'amount_paid' => $newAmountPaid,
-                    'status' => $newAmountPaid >= $part->amount_due ? 'paid' : 'pending',
-                ]);
-
-                $billSplit = $part->billSplit;
-
-                if ($billSplit->parts()->where('status', '!=', 'paid')->doesntExist()) {
-                    $billSplit->update(['status' => 'settled']);
-                }
+            if ($locked->status === 'paid') {
+                throw ValidationException::withMessages(['part' => 'This part has already been paid in full.']);
             }
+
+            if ($status === 'paid' && $amount > $locked->balanceDue()) {
+                throw ValidationException::withMessages([
+                    'amount' => "This payment would exceed this part's remaining balance ({$locked->balanceDue()}).",
+                ]);
+            }
+
+            $payment = $this->recordPayment->execute($locked->billSplit->order, $data, $actor);
+            $payment->update(['bill_split_part_id' => $locked->id]);
+
+            $locked->recalculate();
+            $part->setRawAttributes($locked->fresh()->getAttributes(), true);
 
             return $payment->fresh();
         });

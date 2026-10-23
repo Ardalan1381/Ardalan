@@ -29,6 +29,20 @@ return [
     'pending_confirmation' => 'Pending confirmation',
     'confirm_refund' => 'Refund this payment?',
     'refund_method' => 'Refund method',
+    'refund_settlement' => [
+        'status_label' => 'Status',
+        'statuses' => [
+            'pending' => 'Awaiting settlement',
+            'completed' => 'Completed',
+            'failed' => 'Not carried out',
+        ],
+        'pending_hint' => 'Return the money outside the app (card terminal, gateway dashboard, store credit), then confirm it here.',
+        'confirm_settled' => 'Confirm refunded',
+        'mark_not_settled' => 'Mark not refunded',
+        'external_reference' => 'External reference',
+        'confirm_settled_prompt' => 'Confirm this money has actually been returned to the customer?',
+        'resolved_by' => 'Resolved by :name',
+    ],
     'refund_methods' => [
         'original_payment_method' => 'Original payment method',
         'cash' => 'Cash',

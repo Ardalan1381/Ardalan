@@ -229,6 +229,7 @@ Route::middleware('auth')->group(function () {
         Route::post('orders/{order}/payments', [PaymentController::class, 'store'])->name('orders.payments.store');
         Route::patch('payments/{payment}/status', [PaymentController::class, 'updateStatus'])->name('payments.status');
         Route::post('payments/{payment}/refund', [RefundController::class, 'store'])->name('payments.refund');
+        Route::patch('refunds/{refund}/resolve', [RefundController::class, 'resolve'])->name('refunds.resolve');
 
         Route::get('shifts', [ShiftController::class, 'index'])->name('shifts.index');
         Route::post('shifts', [ShiftController::class, 'store'])->name('shifts.store');

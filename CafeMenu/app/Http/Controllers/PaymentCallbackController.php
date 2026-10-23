@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Actions\UpdatePaymentStatusAction;
+use App\Models\Order;
 use App\Models\Payment;
 use App\Services\Payments\PaymentGatewayManager;
 use Illuminate\Http\Request;
@@ -30,6 +31,9 @@ class PaymentCallbackController extends Controller
         }
 
         return DB::transaction(function () use ($request, $payment, $gateway, $manager, $updateStatus) {
+            // Order row first, then payment: the lock order every payment
+            // write follows, so a callback racing a cashier cannot deadlock.
+            Order::query()->whereKey($payment->order_id)->lockForUpdate()->first();
             $locked = Payment::whereKey($payment->id)->lockForUpdate()->firstOrFail();
 
             // Replayed/duplicate callback delivery: the outcome was already

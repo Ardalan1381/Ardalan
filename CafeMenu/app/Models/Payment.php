@@ -64,8 +64,18 @@ class Payment extends Model
         return $this->refunds()->where('status', 'completed')->sum('amount');
     }
 
+    /**
+     * Pending refunds are not yet money given back, but they are already
+     * promised — they reserve their amount so a second refund cannot be
+     * recorded against the same money while the first awaits settlement.
+     */
+    public function reservedRefundAmount(): int
+    {
+        return (int) $this->refunds()->whereIn('status', ['pending', 'completed'])->sum('amount');
+    }
+
     public function refundableAmount(): int
     {
-        return max(0, $this->amount - $this->refundedAmount());
+        return max(0, $this->amount - $this->reservedRefundAmount());
     }
 }

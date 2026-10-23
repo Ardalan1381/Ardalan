@@ -130,7 +130,16 @@ class DiscountEligibilityChecker
             && $discount->customerGroups->contains('id', $customer->customer_group_id);
     }
 
-    private function withinUsageLimits(Discount $discount, ?Customer $customer): bool
+    /**
+     * Also called by DiscountEngine on the discount row it has just locked
+     * (with $lockingRead): eligibility is first screened on an unlocked
+     * copy, so two concurrent checkouts can both see a free slot — the
+     * authoritative check has to be repeated once the row is locked, and
+     * must read the per-customer redemption count with a locking read too,
+     * since a plain read inside a REPEATABLE READ transaction can return a
+     * snapshot taken before the lock was granted.
+     */
+    public function withinUsageLimits(Discount $discount, ?Customer $customer, bool $lockingRead = false): bool
     {
         if ($discount->usage_limit !== null && $discount->used_count >= $discount->usage_limit) {
             return false;
@@ -141,7 +150,11 @@ class DiscountEligibilityChecker
                 return false;
             }
 
-            $usedByCustomer = $discount->redemptions()->where('customer_id', $customer->id)->count();
+            $redemptions = $discount->redemptions()->where('customer_id', $customer->id);
+            // Counted per order, the same unit used_count is incremented in.
+            $usedByCustomer = $lockingRead
+                ? $redemptions->lockForUpdate()->get(['order_id'])->unique('order_id')->count()
+                : $redemptions->distinct()->count('order_id');
 
             if ($usedByCustomer >= $discount->usage_limit_per_customer) {
                 return false;

@@ -41,6 +41,8 @@ class Order extends Model
         'status_changed_at',
         'inventory_consumed_at',
         'payment_status',
+        'idempotency_key',
+        'idempotency_fingerprint',
     ];
 
     protected function casts(): array

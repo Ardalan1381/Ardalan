@@ -29,6 +29,20 @@ return [
     'pending_confirmation' => 'در انتظار تأیید',
     'confirm_refund' => 'این پرداخت بازگشت داده شود؟',
     'refund_method' => 'روش بازگشت وجه',
+    'refund_settlement' => [
+        'status_label' => 'وضعیت',
+        'statuses' => [
+            'pending' => 'در انتظار تسویه',
+            'completed' => 'انجام شده',
+            'failed' => 'انجام نشد',
+        ],
+        'pending_hint' => 'وجه را خارج از نرم‌افزار بازگردانید (کارتخوان، پنل درگاه، اعتبار فروشگاه) و سپس اینجا تأیید کنید.',
+        'confirm_settled' => 'تأیید بازگشت وجه',
+        'mark_not_settled' => 'ثبت عدم بازگشت',
+        'external_reference' => 'شماره پیگیری خارجی',
+        'confirm_settled_prompt' => 'تأیید می‌کنید که این مبلغ واقعاً به مشتری بازگردانده شده است؟',
+        'resolved_by' => 'تعیین وضعیت توسط :name',
+    ],
     'refund_methods' => [
         'original_payment_method' => 'روش پرداخت اصلی',
         'cash' => 'نقدی',

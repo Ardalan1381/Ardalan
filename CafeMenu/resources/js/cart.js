@@ -115,6 +115,54 @@ document.addEventListener('DOMContentLoaded', () => {
 
     orderTypeSelect.addEventListener('change', toggleConditionalFields);
 
+    // One idempotency key per checkout attempt: retries of the SAME payload
+    // (double-click, flaky network, a reload while the request was in
+    // flight) reuse it, so the server returns the order it already created
+    // instead of placing a duplicate. Any change to the cart or form starts
+    // a new attempt with a fresh key.
+    const CHECKOUT_ATTEMPT_KEY = 'cafe.checkoutAttempt';
+
+    function newUuid() {
+        if (window.crypto && typeof window.crypto.randomUUID === 'function') {
+            return window.crypto.randomUUID();
+        }
+        // crypto.randomUUID needs a secure context; plain-HTTP installs on a
+        // LAN still get a random RFC 4122 v4 UUID.
+        const bytes = window.crypto.getRandomValues(new Uint8Array(16));
+        bytes[6] = (bytes[6] & 0x0f) | 0x40;
+        bytes[8] = (bytes[8] & 0x3f) | 0x80;
+        const hex = Array.from(bytes, (b) => b.toString(16).padStart(2, '0')).join('');
+        return `${hex.slice(0, 8)}-${hex.slice(8, 12)}-${hex.slice(12, 16)}-${hex.slice(16, 20)}-${hex.slice(20)}`;
+    }
+
+    function idempotencyKeyFor(payload) {
+        const signature = JSON.stringify(payload);
+        let attempt = null;
+        try {
+            attempt = JSON.parse(window.sessionStorage.getItem(CHECKOUT_ATTEMPT_KEY) || 'null');
+        } catch (e) {
+            attempt = null;
+        }
+        if (! attempt || attempt.signature !== signature) {
+            attempt = { key: newUuid(), signature };
+            try {
+                window.sessionStorage.setItem(CHECKOUT_ATTEMPT_KEY, JSON.stringify(attempt));
+            } catch (e) {
+                // Storage unavailable (private mode): the key still covers
+                // retries within this page view.
+            }
+        }
+        return attempt.key;
+    }
+
+    function forgetCheckoutAttempt() {
+        try {
+            window.sessionStorage.removeItem(CHECKOUT_ATTEMPT_KEY);
+        } catch (e) {
+            // ignore
+        }
+    }
+
     placeOrderButton.addEventListener('click', async () => {
         errorBox.hidden = true;
         placeOrderButton.disabled = true;
@@ -135,6 +183,7 @@ document.addEventListener('DOMContentLoaded', () => {
             payment_method: ! cashOnPickupField.hidden && cashOnPickupCheckbox.checked ? 'cash' : null,
             items,
         };
+        payload.idempotency_key = idempotencyKeyFor(payload);
 
         try {
             const response = await fetch('/checkout', {
@@ -157,6 +206,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 return;
             }
 
+            forgetCheckoutAttempt();
             CartStore.clear();
             window.location.href = data.redirect;
         } catch (e) {
