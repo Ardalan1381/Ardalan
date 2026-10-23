@@ -1,0 +1,26 @@
+# WebSocket server powering real-time order and waiter-call notifications
+# in the admin panel. Without this running, admin notifications are only
+# ever created — they never arrive live (see the queue worker unit too).
+#
+# Install:
+#   sudo cp deploy/systemd/cafe-reverb.service /etc/systemd/system/
+#   sudo systemctl daemon-reload
+#   sudo systemctl enable --now cafe-reverb
+#
+# Edit User/WorkingDirectory/ExecStart below to match your server first.
+# Put this behind your reverse proxy with WebSocket upgrade headers
+# forwarded — see deploy/nginx/cafe.conf.
+
+[Unit]
+Description=Cafe Menu Reverb server
+After=network.target
+
+[Service]
+User=www-data
+WorkingDirectory=/var/www/cafe
+ExecStart=/usr/bin/php artisan reverb:start
+Restart=always
+RestartSec=3
+
+[Install]
+WantedBy=multi-user.target

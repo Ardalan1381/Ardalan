@@ -1,0 +1,36 @@
+<?php
+
+return [
+    'admin' => [
+        'dashboard' => 'Dashboard',
+        'orders' => 'Orders',
+        'kitchen' => 'Kitchen display',
+        'pos' => 'POS / Waiter',
+        'categories' => 'Categories',
+        'products' => 'Products',
+        'table_sections' => 'Table sections',
+        'tables' => 'Tables',
+        'qr_menu' => 'Menu QR',
+        'waiter_calls' => 'Waiter calls',
+        'customers' => 'Customers',
+        'discounts' => 'Discounts',
+        'loyalty' => 'Loyalty',
+        'inventory' => 'Inventory',
+        'payments' => 'Payments',
+        'shifts' => 'Shifts',
+        'invoice_templates' => 'Invoice templates',
+        'printers' => 'Printers',
+        'reports' => 'Reports',
+        'users' => 'Users',
+        'business_settings' => 'Business settings',
+        'system_settings' => 'System settings',
+        'audit_logs' => 'Audit logs',
+        'logout' => 'Log out',
+    ],
+
+    'public' => [
+        'menu' => 'Menu',
+        'cart' => 'Cart',
+        'order_tracking' => 'Order',
+    ],
+];

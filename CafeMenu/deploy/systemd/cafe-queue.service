@@ -1,0 +1,23 @@
+# Processes queued notifications and other background work
+# (QUEUE_CONNECTION=database by default — no Redis required).
+#
+# Install:
+#   sudo cp deploy/systemd/cafe-queue.service /etc/systemd/system/
+#   sudo systemctl daemon-reload
+#   sudo systemctl enable --now cafe-queue
+#
+# Edit User/WorkingDirectory/ExecStart below to match your server first.
+
+[Unit]
+Description=Cafe Menu queue worker
+After=network.target mysql.service
+
+[Service]
+User=www-data
+WorkingDirectory=/var/www/cafe
+ExecStart=/usr/bin/php artisan queue:work --sleep=3 --tries=3 --max-time=3600
+Restart=always
+RestartSec=3
+
+[Install]
+WantedBy=multi-user.target
