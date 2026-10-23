@@ -36,6 +36,9 @@ composer install --no-dev --optimize-autoloader --prefer-dist --no-interaction -
 # If Composer had to fall back to git clones (no dist access), drop the VCS
 # metadata: it is hundreds of MB and has no place on a server.
 find vendor -type d -name .git -prune -exec rm -rf {} +
+# Packages' own test suites (dist archives normally exclude them; source
+# clones do not) — they include dummy .env fixtures that do not belong here.
+find vendor -mindepth 3 -maxdepth 3 -type d \( -name tests -o -name Tests \) -prune -exec rm -rf {} +
 php -r "file_exists('.env') || copy('.env.example', '.env');"
 # Throwaway build-time .env: only the public Reverb settings matter here.
 for key in REVERB_APP_KEY REVERB_HOST REVERB_PORT REVERB_SCHEME; do
