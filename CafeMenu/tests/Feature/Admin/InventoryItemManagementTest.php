@@ -5,8 +5,10 @@ namespace Tests\Feature\Admin;
 use App\Models\InventoryCategory;
 use App\Models\InventoryItem;
 use App\Models\InventoryUnit;
+use App\Models\Purchase;
 use App\Models\PurchaseItem;
 use App\Models\Role;
+use App\Models\Supplier;
 use App\Models\User;
 use App\Services\Inventory\StockMovementService;
 use Database\Seeders\RolePermissionSeeder;
@@ -112,7 +114,7 @@ class InventoryItemManagementTest extends TestCase
         $manager = $this->userWithRole('manager');
         $unit = $this->gramUnit();
         $item = InventoryItem::create(['name' => 'Coffee Beans', 'base_unit_id' => $unit->id, 'is_active' => true]);
-        $purchase = \App\Models\Purchase::create(['supplier_id' => \App\Models\Supplier::create(['name' => 'Acme'])->id, 'purchase_date' => now()]);
+        $purchase = Purchase::create(['supplier_id' => Supplier::create(['name' => 'Acme'])->id, 'purchase_date' => now()]);
         PurchaseItem::create([
             'purchase_id' => $purchase->id,
             'inventory_item_id' => $item->id,

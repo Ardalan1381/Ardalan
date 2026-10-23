@@ -14,6 +14,7 @@ use App\Models\User;
 use App\Services\Inventory\StockMovementService;
 use Database\Seeders\RolePermissionSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Validation\ValidationException;
 use Tests\TestCase;
 
 class RecipeConsumptionTest extends TestCase
@@ -120,7 +121,7 @@ class RecipeConsumptionTest extends TestCase
         try {
             $this->transition($order, 'confirmed', $owner);
             $this->fail('Expected a ValidationException for insufficient stock.');
-        } catch (\Illuminate\Validation\ValidationException) {
+        } catch (ValidationException) {
             // expected
         }
 

@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Support\Quantity;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -64,6 +65,6 @@ class InventoryItem extends Model
     public function isLowStock(): bool
     {
         return $this->min_stock_level !== null
-            && \App\Support\Quantity::compare((string) $this->current_stock, (string) $this->min_stock_level) <= 0;
+            && Quantity::compare((string) $this->current_stock, (string) $this->min_stock_level) <= 0;
     }
 }

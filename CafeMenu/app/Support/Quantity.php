@@ -2,6 +2,8 @@
 
 namespace App\Support;
 
+use App\Models\InventoryUnit;
+
 /**
  * Arithmetic on inventory quantities, which are stored as decimal(14,4)
  * strings (Eloquent's decimal cast returns them as strings specifically to
@@ -50,7 +52,7 @@ class Quantity
      * and milliliters without a density, so that must never be silently
      * attempted.
      */
-    public static function convert(string $quantity, \App\Models\InventoryUnit $from, \App\Models\InventoryUnit $to): string
+    public static function convert(string $quantity, InventoryUnit $from, InventoryUnit $to): string
     {
         if ($from->type !== $to->type) {
             throw new \InvalidArgumentException(

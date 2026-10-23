@@ -3,7 +3,6 @@
 namespace Tests\Feature\Admin;
 
 use App\Actions\CreateStaffOrderAction;
-use App\Actions\RecordPaymentAction;
 use App\Actions\Shifts\CloseShiftAction;
 use App\Actions\Shifts\OpenShiftAction;
 use App\Actions\TransitionOrderStatusAction;
@@ -11,7 +10,9 @@ use App\Models\Category;
 use App\Models\Customer;
 use App\Models\InventoryItem;
 use App\Models\InventoryUnit;
+use App\Models\Order;
 use App\Models\Product;
+use App\Models\Purchase;
 use App\Models\Role;
 use App\Models\Supplier;
 use App\Models\Table;
@@ -132,7 +133,7 @@ class ReportsExpansionTest extends TestCase
     {
         $owner = $this->userWithRole('owner');
         $supplier = Supplier::create(['name' => 'Acme Roasters', 'is_active' => true]);
-        \App\Models\Purchase::create([
+        Purchase::create([
             'supplier_id' => $supplier->id,
             'purchase_date' => now(),
             'total_cost' => 30000,
@@ -201,7 +202,7 @@ class ReportsExpansionTest extends TestCase
         $this->assertSame(5000, $row->profit);
     }
 
-    private function complete(\App\Models\Order $order, User $actor): void
+    private function complete(Order $order, User $actor): void
     {
         foreach (['confirmed', 'preparing', 'ready', 'completed'] as $status) {
             app(TransitionOrderStatusAction::class)->execute($order->fresh(), $status, $actor);

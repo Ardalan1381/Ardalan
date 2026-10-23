@@ -11,8 +11,8 @@ use App\Models\BillSplit;
 use App\Models\BillSplitPart;
 use App\Models\Order;
 use Illuminate\Http\RedirectResponse;
-use Illuminate\View\View;
 use Illuminate\Validation\ValidationException;
+use Illuminate\View\View;
 
 class BillSplitController extends Controller
 {

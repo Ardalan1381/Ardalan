@@ -117,7 +117,7 @@ class ReceiptFormatter
 
     private function newDocument(Printer $printer): EscPosDocumentBuilder
     {
-        $builder = (new EscPosDocumentBuilder())->init();
+        $builder = (new EscPosDocumentBuilder)->init();
 
         if (app()->getLocale() === 'fa' && $printer->farsi_codepage_table) {
             $builder->selectFarsiCodepage($printer->farsi_codepage_table);

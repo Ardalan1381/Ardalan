@@ -9,7 +9,6 @@ use App\Actions\Shifts\OpenShiftAction;
 use App\Actions\Shifts\RecordCashMovementAction;
 use App\Actions\UpdatePaymentStatusAction;
 use App\Models\CashMovement;
-use App\Models\Order;
 use App\Models\Product;
 use App\Models\Role;
 use App\Models\Shift;

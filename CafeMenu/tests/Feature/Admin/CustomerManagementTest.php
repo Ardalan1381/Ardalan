@@ -7,6 +7,7 @@ use App\Models\CustomerGroup;
 use App\Models\Order;
 use App\Models\Role;
 use App\Models\User;
+use App\Support\Money;
 use Database\Seeders\RolePermissionSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Route;
@@ -157,7 +158,7 @@ class CustomerManagementTest extends TestCase
 
         $response->assertOk();
         // Two orders total, but only the completed one counts toward sales stats.
-        $response->assertSee(\App\Support\Money::format(10000));
+        $response->assertSee(Money::format(10000));
     }
 
     public function test_owner_can_manage_customer_groups(): void

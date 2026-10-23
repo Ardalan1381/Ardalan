@@ -5,15 +5,20 @@ namespace Tests\Feature;
 use App\Actions\Billing\CreateBillSplitAction;
 use App\Actions\Billing\RecordSplitPaymentAction;
 use App\Actions\CreateStaffOrderAction;
+use App\Actions\RecordPaymentAction;
+use App\Models\BillSplit;
+use App\Models\BillSplitPart;
 use App\Models\BillSplitPartItem;
+use App\Models\Order;
+use App\Models\Product;
 use App\Models\Role;
 use App\Models\Table;
 use App\Models\User;
 use Database\Seeders\RolePermissionSeeder;
+use Illuminate\Database\QueryException;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Validation\ValidationException;
 use Tests\TestCase;
-use App\Models\Product;
 
 class BillSplitTest extends TestCase
 {
@@ -31,7 +36,7 @@ class BillSplitTest extends TestCase
         return User::factory()->create(['role_id' => Role::where('name', 'waiter')->first()->id]);
     }
 
-    private function orderWithTwoItems(): \App\Models\Order
+    private function orderWithTwoItems(): Order
     {
         $waiter = $this->waiter();
         $table = Table::factory()->create();
@@ -112,8 +117,8 @@ class BillSplitTest extends TestCase
         $items = $order->items()->orderBy('id')->get();
 
         BillSplitPartItem::create([
-            'bill_split_part_id' => \App\Models\BillSplitPart::create([
-                'bill_split_id' => \App\Models\BillSplit::create([
+            'bill_split_part_id' => BillSplitPart::create([
+                'bill_split_id' => BillSplit::create([
                     'order_id' => $order->id,
                     'split_type' => 'by_item',
                     'status' => 'open',
@@ -126,10 +131,10 @@ class BillSplitTest extends TestCase
             'quantity_allocated' => 1,
         ]);
 
-        $this->expectException(\Illuminate\Database\QueryException::class);
+        $this->expectException(QueryException::class);
         BillSplitPartItem::create([
-            'bill_split_part_id' => \App\Models\BillSplitPart::create([
-                'bill_split_id' => \App\Models\BillSplit::where('order_id', $order->id)->first()->id,
+            'bill_split_part_id' => BillSplitPart::create([
+                'bill_split_id' => BillSplit::where('order_id', $order->id)->first()->id,
                 'label' => 'Duplicate attempt',
                 'amount_due' => 1000,
             ])->id,
@@ -196,7 +201,7 @@ class BillSplitTest extends TestCase
     {
         $order = $this->orderWithTwoItems();
         $actor = $this->waiter();
-        app(\App\Actions\RecordPaymentAction::class)->execute($order, ['method' => 'cash', 'amount' => 10000, 'status' => 'paid'], $actor);
+        app(RecordPaymentAction::class)->execute($order, ['method' => 'cash', 'amount' => 10000, 'status' => 'paid'], $actor);
 
         $this->expectException(ValidationException::class);
         app(CreateBillSplitAction::class)->execute($order, 'even', [

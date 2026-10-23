@@ -4,6 +4,7 @@ namespace App\Models;
 
 use App\Models\Concerns\HasMedia;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\UniqueConstraintViolationException;
 
 class BusinessSetting extends Model
 {
@@ -116,7 +117,7 @@ class BusinessSetting extends Model
             $settings->forceFill(['id' => 1])->save();
 
             return $settings;
-        } catch (\Illuminate\Database\UniqueConstraintViolationException) {
+        } catch (UniqueConstraintViolationException) {
             return self::query()->findOrFail(1);
         }
     }

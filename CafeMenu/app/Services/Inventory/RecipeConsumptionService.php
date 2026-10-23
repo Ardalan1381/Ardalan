@@ -9,6 +9,7 @@ use App\Models\RecipeItem;
 use App\Models\StockMovement;
 use App\Services\AuditLogger;
 use App\Support\Quantity;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Support\Facades\DB;
 
 /**
@@ -119,7 +120,7 @@ class RecipeConsumptionService
     }
 
     /**
-     * @param  \Illuminate\Database\Eloquent\Collection<int, RecipeItem>  $recipeItems
+     * @param  Collection<int, RecipeItem>  $recipeItems
      */
     private function consumeRecipeLines($recipeItems, OrderItem $item): void
     {

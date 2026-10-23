@@ -4,8 +4,8 @@ namespace App\Services\Loyalty;
 
 use App\Models\Customer;
 use App\Models\LoyaltyLedgerEntry;
-use App\Models\LoyaltyRule;
 use App\Models\LoyaltyReward;
+use App\Models\LoyaltyRule;
 use App\Models\Order;
 use App\Models\User;
 use Illuminate\Validation\ValidationException;

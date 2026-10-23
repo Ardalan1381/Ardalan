@@ -6,8 +6,9 @@ use App\Actions\CreateStaffOrderAction;
 use App\Actions\TransitionOrderStatusAction;
 use App\Jobs\PrintDocumentJob;
 use App\Models\Category;
-use App\Models\PrintJob;
+use App\Models\Order;
 use App\Models\Printer;
+use App\Models\PrintJob;
 use App\Models\PrintRoute;
 use App\Models\Product;
 use App\Models\Role;
@@ -16,6 +17,7 @@ use App\Models\User;
 use App\Services\Printing\Connectors\NetworkPrintConnector;
 use App\Services\Printing\EscPosPrinterService;
 use App\Services\Printing\PrintRoutingService;
+use App\Services\Printing\ReceiptFormatter;
 use App\Support\Printing\EscPosDocumentBuilder;
 use Database\Seeders\RolePermissionSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -42,28 +44,28 @@ class PrintingEngineTest extends TestCase
 
     public function test_init_emits_the_esc_at_reset_command(): void
     {
-        $bytes = (new EscPosDocumentBuilder())->init()->toBytes();
+        $bytes = (new EscPosDocumentBuilder)->init()->toBytes();
 
         $this->assertSame("\x1B\x40", $bytes);
     }
 
     public function test_cut_emits_the_gs_v_full_cut_command(): void
     {
-        $bytes = (new EscPosDocumentBuilder())->cut()->toBytes();
+        $bytes = (new EscPosDocumentBuilder)->cut()->toBytes();
 
         $this->assertSame("\x1D\x56\x00", $bytes);
     }
 
     public function test_text_is_passed_through_unmodified_outside_farsi_mode(): void
     {
-        $bytes = (new EscPosDocumentBuilder())->text('Hello')->toBytes();
+        $bytes = (new EscPosDocumentBuilder)->text('Hello')->toBytes();
 
         $this->assertSame("Hello\n", $bytes);
     }
 
     public function test_select_farsi_codepage_emits_esc_t_n_and_transliterates_subsequent_text(): void
     {
-        $builder = (new EscPosDocumentBuilder())->selectFarsiCodepage(22);
+        $builder = (new EscPosDocumentBuilder)->selectFarsiCodepage(22);
         $header = $builder->toBytes();
 
         $this->assertSame("\x1B\x74".chr(22), $header);
@@ -76,7 +78,7 @@ class PrintingEngineTest extends TestCase
 
     public function test_two_column_line_pads_between_label_and_value(): void
     {
-        $bytes = (new EscPosDocumentBuilder())->twoColumnLine('Total', '100', 10)->toBytes();
+        $bytes = (new EscPosDocumentBuilder)->twoColumnLine('Total', '100', 10)->toBytes();
 
         $this->assertSame("Total  100\n", $bytes);
     }
@@ -206,7 +208,7 @@ class PrintingEngineTest extends TestCase
         $printer = Printer::create(['name' => 'Kitchen', 'connection_type' => 'network', 'ip_address' => $host, 'port' => (int) $port, 'paper_width' => '80mm']);
 
         $printJob = PrintJob::create([
-            'printable_type' => \App\Models\Order::class,
+            'printable_type' => Order::class,
             'printable_id' => $order->id,
             'document_type' => 'kitchen_docket',
             'category_id' => null,
@@ -220,7 +222,7 @@ class PrintingEngineTest extends TestCase
         // job's own fwrite completes synchronously against the backlog
         // even before accept(), since TCP buffers the write.
         app(PrintDocumentJob::class, ['printJob' => $printJob])->handle(
-            app(\App\Services\Printing\ReceiptFormatter::class),
+            app(ReceiptFormatter::class),
             app(EscPosPrinterService::class),
         );
 
@@ -241,7 +243,7 @@ class PrintingEngineTest extends TestCase
 
         $printer = Printer::create(['name' => 'Unreachable', 'connection_type' => 'network', 'ip_address' => '127.0.0.1', 'port' => 1, 'paper_width' => '80mm']);
         $printJob = PrintJob::create([
-            'printable_type' => \App\Models\Order::class,
+            'printable_type' => Order::class,
             'printable_id' => $order->id,
             'document_type' => 'kitchen_docket',
             'category_id' => null,
@@ -252,7 +254,7 @@ class PrintingEngineTest extends TestCase
         $job = app(PrintDocumentJob::class, ['printJob' => $printJob]);
 
         try {
-            $job->handle(app(\App\Services\Printing\ReceiptFormatter::class), app(EscPosPrinterService::class));
+            $job->handle(app(ReceiptFormatter::class), app(EscPosPrinterService::class));
             $this->fail('Expected the job to throw when the printer is unreachable.');
         } catch (\RuntimeException) {
             // expected — Laravel's queue worker catches this for retry/backoff.

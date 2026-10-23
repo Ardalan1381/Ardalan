@@ -2,6 +2,7 @@
 
 namespace Tests\Concurrency;
 
+use App\Actions\PlaceOrderAction;
 use App\Models\Customer;
 use App\Models\Discount;
 use App\Models\DiscountRedemption;
@@ -55,7 +56,7 @@ class CriticalOperationsConcurrencyTest extends ConcurrencyTestCase
 
     private function takeawayOrder(Product $product, ?Customer $customer = null, int $quantity = 1): Order
     {
-        $order = app(\App\Actions\PlaceOrderAction::class)->execute([
+        $order = app(PlaceOrderAction::class)->execute([
             'type' => 'takeaway',
             'customer_name' => 'Jane',
             'customer_phone' => '555',

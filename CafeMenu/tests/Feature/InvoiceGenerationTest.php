@@ -8,6 +8,7 @@ use App\Actions\Invoices\SetDefaultInvoiceTemplateAction;
 use App\Models\Customer;
 use App\Models\Invoice;
 use App\Models\InvoiceTemplate;
+use App\Models\Product;
 use App\Models\Role;
 use App\Models\Table;
 use App\Models\User;
@@ -36,7 +37,7 @@ class InvoiceGenerationTest extends TestCase
         $waiter = $this->waiter();
         $table = Table::factory()->create(['name' => 'T-12']);
         $customer = Customer::create(['name' => 'Ali Rezaei', 'phone' => '0912', 'status' => 'active']);
-        $product = \App\Models\Product::factory()->create(['base_price' => 5000, 'name' => 'Latte']);
+        $product = Product::factory()->create(['base_price' => 5000, 'name' => 'Latte']);
 
         $order = app(CreateStaffOrderAction::class)->execute([
             'type' => 'dine_in',
@@ -62,7 +63,7 @@ class InvoiceGenerationTest extends TestCase
     {
         $waiter = $this->waiter();
         $table = Table::factory()->create();
-        $product = \App\Models\Product::factory()->create();
+        $product = Product::factory()->create();
 
         $order = app(CreateStaffOrderAction::class)->execute([
             'type' => 'dine_in',
@@ -82,7 +83,7 @@ class InvoiceGenerationTest extends TestCase
         $waiter = $this->waiter();
         $table = Table::factory()->create();
         $customer = Customer::create(['name' => 'Original Name', 'status' => 'active']);
-        $product = \App\Models\Product::factory()->create();
+        $product = Product::factory()->create();
 
         $order = app(CreateStaffOrderAction::class)->execute([
             'type' => 'dine_in',
@@ -115,7 +116,7 @@ class InvoiceGenerationTest extends TestCase
 
         $waiter = $this->waiter();
         $table = Table::factory()->create();
-        $product = \App\Models\Product::factory()->create();
+        $product = Product::factory()->create();
         $order = app(CreateStaffOrderAction::class)->execute([
             'type' => 'dine_in',
             'table_id' => $table->id,

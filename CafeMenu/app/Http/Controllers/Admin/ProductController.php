@@ -12,7 +12,6 @@ use App\Models\Category;
 use App\Models\InventoryItem;
 use App\Models\InventoryUnit;
 use App\Models\Product;
-use App\Models\ProductPrice;
 use App\Models\SystemSetting;
 use App\Services\AuditLogger;
 use Illuminate\Http\RedirectResponse;

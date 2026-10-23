@@ -2,6 +2,7 @@
 
 namespace Tests\Feature\Admin;
 
+use App\Actions\Invoices\GenerateInvoiceAction;
 use App\Models\BusinessSetting;
 use App\Models\Category;
 use App\Models\Customer;
@@ -16,6 +17,7 @@ use App\Models\Table;
 use App\Models\TableSection;
 use App\Models\TableSession;
 use App\Models\User;
+use App\Support\Money;
 use Database\Seeders\RolePermissionSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
@@ -244,7 +246,7 @@ class PosOrderTest extends TestCase
             'items' => [['product_id' => $product->id, 'quantity' => 1]],
         ]);
         $order = Order::firstOrFail();
-        app(\App\Actions\Invoices\GenerateInvoiceAction::class)->execute($order, $waiter);
+        app(GenerateInvoiceAction::class)->execute($order, $waiter);
 
         $response = $this->actingAs($waiter)->post(route('admin.pos.orders.items.store', $order->fresh()), [
             'items' => [['product_id' => $product->id, 'quantity' => 1]],
@@ -315,7 +317,7 @@ class PosOrderTest extends TestCase
         $response->assertOk();
         $response->assertSee('Hot Drinks');
         $response->assertSee('Cappuccino');
-        $response->assertSee(\App\Support\Money::format($product->effectivePrice()));
+        $response->assertSee(Money::format($product->effectivePrice()));
     }
 
     public function test_the_pos_counter_page_renders_the_catalog_and_order_type_options(): void

@@ -37,8 +37,8 @@ class EnsureReverbCredentials extends Command
         $generated = [];
 
         foreach (['REVERB_APP_ID' => fn () => (string) random_int(100_000, 999_999),
-                  'REVERB_APP_KEY' => fn () => Str::lower(Str::random(20)),
-                  'REVERB_APP_SECRET' => fn () => Str::lower(Str::random(20))] as $key => $makeValue) {
+            'REVERB_APP_KEY' => fn () => Str::lower(Str::random(20)),
+            'REVERB_APP_SECRET' => fn () => Str::lower(Str::random(20))] as $key => $makeValue) {
             if (! $this->isBlankOrMissing($contents, $key)) {
                 continue;
             }

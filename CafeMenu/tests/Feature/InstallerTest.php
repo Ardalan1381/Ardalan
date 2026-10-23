@@ -8,6 +8,7 @@ use App\Models\User;
 use App\Services\Installer\EnvWriter;
 use App\Services\Installer\InstallLock;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\Storage;
 use Tests\TestCase;
 
@@ -308,7 +309,7 @@ class InstallerTest extends TestCase
     {
         // Simulated rather than dropping a table: DDL would implicitly
         // commit the test transaction on MySQL.
-        \Illuminate\Support\Facades\Schema::shouldReceive('hasTable')->andReturn(false);
+        Schema::shouldReceive('hasTable')->andReturn(false);
 
         $this->get('/')->assertRedirect(route('install.requirements'));
     }

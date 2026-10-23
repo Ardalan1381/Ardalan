@@ -3,6 +3,7 @@
 namespace App\Services\Customers;
 
 use App\Models\Customer;
+use Illuminate\Support\Carbon;
 
 /**
  * Read-only, on-demand stats for a single customer's admin detail page.
@@ -17,7 +18,7 @@ class CustomerStatsService
     private const EXCLUDED_FROM_SALES = ['cancelled', 'rejected'];
 
     /**
-     * @return array{total_spent: int, order_count: int, average_order_value: int, last_order_at: ?\Illuminate\Support\Carbon}
+     * @return array{total_spent: int, order_count: int, average_order_value: int, last_order_at: ?Carbon}
      */
     public function forCustomer(Customer $customer): array
     {

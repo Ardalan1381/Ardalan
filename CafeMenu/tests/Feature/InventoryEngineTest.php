@@ -12,6 +12,7 @@ use App\Actions\Inventory\StartStockCountAction;
 use App\Actions\Inventory\SubmitStockCountAction;
 use App\Models\InventoryItem;
 use App\Models\InventoryUnit;
+use App\Models\Purchase;
 use App\Models\Role;
 use App\Models\StockMovement;
 use App\Models\Supplier;
@@ -147,7 +148,7 @@ class InventoryEngineTest extends TestCase
         $this->assertSame('received', $updated->status);
         // 5kg received into a gram-tracked item -> 5000g.
         $this->assertSame('5000.0000', $item->fresh()->current_stock);
-        $this->assertSame(\App\Models\Purchase::class, StockMovement::query()->latest()->first()->reference_type);
+        $this->assertSame(Purchase::class, StockMovement::query()->latest()->first()->reference_type);
     }
 
     public function test_partial_receipt_marks_the_purchase_partially_received(): void
