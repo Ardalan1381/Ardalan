@@ -17,6 +17,12 @@ class SetSecurityHeaders
         $response->headers->set('Referrer-Policy', 'strict-origin-when-cross-origin');
         $response->headers->set('Permissions-Policy', 'geolocation=(), microphone=(), camera=()');
 
+        // Only over HTTPS and in production: sending HSTS from a local or
+        // plain-HTTP LAN install would lock browsers out of it.
+        if ($request->isSecure() && app()->isProduction()) {
+            $response->headers->set('Strict-Transport-Security', 'max-age=31536000');
+        }
+
         return $response;
     }
 }

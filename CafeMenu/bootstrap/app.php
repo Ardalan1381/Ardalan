@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Middleware\RedirectToInstaller;
 use App\Http\Middleware\SetLocale;
 use App\Http\Middleware\SetSecurityHeaders;
 use Illuminate\Foundation\Application;
@@ -15,6 +16,7 @@ return Application::configure(basePath: dirname(__DIR__))
     )
     ->withMiddleware(function (Middleware $middleware): void {
         $middleware->appendToGroup('web', SetSecurityHeaders::class);
+        $middleware->appendToGroup('web', RedirectToInstaller::class);
         $middleware->appendToGroup('web', SetLocale::class);
 
         // Payment gateways POST back to this route cross-origin with no

@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Middleware\EnsureNotInstalled;
 use App\Models\BusinessSetting;
 use App\Models\Role;
 use App\Models\User;
@@ -148,13 +149,17 @@ class InstallController extends Controller
 
         $ownerRole = Role::where('name', 'owner')->first();
 
-        User::create([
+        $owner = User::create([
             'name' => $data['name'],
             'email' => $data['email'],
             'password' => Hash::make($data['password']),
             'role_id' => $ownerRole?->id,
             'is_active' => true,
         ]);
+
+        // Lets only this browser session continue to the remaining steps
+        // now that the database has a user (see EnsureNotInstalled).
+        $request->session()->put(EnsureNotInstalled::SESSION_OWNER_KEY, $owner->id);
 
         return redirect()->route('install.business');
     }

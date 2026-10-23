@@ -121,4 +121,18 @@ class ZibalGatewayTest extends TestCase
 
         $this->assertFalse($result->successful);
     }
+
+    public function test_verify_fails_when_the_gateway_verified_a_different_amount(): void
+    {
+        $order = $this->placeOrder(50000);
+        $payment = $order->payments()->create(['method' => 'online', 'amount' => $order->grand_total, 'status' => 'pending']);
+        $payment->gateway_token = '555111';
+        $payment->save();
+
+        Http::fake(['*/v1/verify' => Http::response(['result' => 100, 'refNumber' => 'R1', 'amount' => 1000])]);
+
+        $result = (new ZibalGateway)->verify(Request::create('/?success=1&trackId=555111'), $payment);
+
+        $this->assertFalse($result->successful);
+    }
 }

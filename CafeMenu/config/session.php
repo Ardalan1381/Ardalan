@@ -169,7 +169,10 @@ return [
     |
     */
 
-    'secure' => env('SESSION_SECURE_COOKIE'),
+    // Defaults to secure-only cookies whenever APP_URL is https, so an
+    // HTTPS install is safe without remembering to set this by hand. Set
+    // SESSION_SECURE_COOKIE=false explicitly only for plain-HTTP setups.
+    'secure' => env('SESSION_SECURE_COOKIE', str_starts_with((string) env('APP_URL', ''), 'https://')),
 
     /*
     |--------------------------------------------------------------------------

@@ -164,4 +164,22 @@ XML;
         $this->assertFalse($result->successful);
         Http::assertSentCount(2);
     }
+
+    public function test_verify_refuses_a_callback_naming_a_different_sale_order(): void
+    {
+        Http::fake();
+
+        $order = $this->placeOrder();
+        $payment = $order->payments()->create(['method' => 'online', 'amount' => $order->grand_total, 'status' => 'pending']);
+        $payment->gateway_token = 'REF-ABC-123';
+        $payment->save();
+
+        $result = (new MellatGateway)->verify(
+            Request::create('/', 'POST', ['RefId' => 'REF-ABC-123', 'ResCode' => '0', 'SaleOrderId' => $payment->id + 1000, 'SaleReferenceId' => 'SALE-OTHER']),
+            $payment,
+        );
+
+        $this->assertFalse($result->successful);
+        Http::assertNothingSent();
+    }
 }

@@ -89,6 +89,14 @@ class MellatGateway implements PaymentGatewayInterface
         $saleOrderId = $request->input('SaleOrderId', $orderId);
         $saleReferenceId = $request->input('SaleReferenceId');
 
+        // The callback body is attacker-controllable. bpPayRequest was made
+        // with orderId = this payment's id, so a SaleOrderId naming any
+        // other sale (e.g. a cheaper one the attacker really did pay for)
+        // must never be used to verify this payment.
+        if ((string) $saleOrderId !== (string) $orderId || blank($saleReferenceId)) {
+            return PaymentVerificationResult::failure('Mellat callback does not belong to this payment.', $request->all());
+        }
+
         $verifyResult = $this->call('bpVerifyRequest', [
             'terminalId' => GatewayCredentials::get('mellat', 'terminal_id'),
             'userName' => GatewayCredentials::get('mellat', 'username'),

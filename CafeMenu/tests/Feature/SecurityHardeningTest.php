@@ -55,4 +55,12 @@ class SecurityHardeningTest extends TestCase
 
         $this->get(route('orders.show', $order))->assertStatus(429);
     }
+
+    public function test_hsts_is_sent_only_for_https_requests_in_production(): void
+    {
+        $this->get('/')->assertHeaderMissing('Strict-Transport-Security');
+
+        $this->app['env'] = 'production';
+        $this->get('https://localhost/')->assertHeader('Strict-Transport-Security', 'max-age=31536000');
+    }
 }

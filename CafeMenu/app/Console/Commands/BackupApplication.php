@@ -90,5 +90,9 @@ class BackupApplication extends Command
         if ($result->failed()) {
             throw new \RuntimeException('Creating the backup archive failed: '.$result->errorOutput());
         }
+
+        // The archive holds a full database dump (password hashes, customer
+        // phone numbers, encrypted gateway credentials): owner-only.
+        @chmod($archivePath, 0600);
     }
 }

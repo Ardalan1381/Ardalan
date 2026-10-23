@@ -286,4 +286,37 @@ class InstallerTest extends TestCase
         $owner = User::where('email', 'owner@example.com')->firstOrFail();
         $this->assertTrue($owner->hasRole('owner'));
     }
+
+    public function test_installer_stays_closed_when_the_lock_file_is_lost_but_the_database_has_users(): void
+    {
+        // A live site whose storage/ was not carried over on a redeploy.
+        $this->post(route('install.migrate.run'));
+        User::factory()->create();
+        $this->assertFalse(app(InstallLock::class)->isInstalled());
+
+        $this->flushSession();
+
+        $this->get(route('install.database'))->assertRedirect('/');
+        $this->post(route('install.database.store'), [
+            'db_host' => 'attacker.example', 'db_port' => 3306, 'db_database' => 'x', 'db_username' => 'x',
+        ])->assertRedirect('/');
+
+        $this->assertTrue(app(InstallLock::class)->isInstalled());
+    }
+
+    public function test_a_never_installed_site_sends_visitors_to_the_installer(): void
+    {
+        // Simulated rather than dropping a table: DDL would implicitly
+        // commit the test transaction on MySQL.
+        \Illuminate\Support\Facades\Schema::shouldReceive('hasTable')->andReturn(false);
+
+        $this->get('/')->assertRedirect(route('install.requirements'));
+    }
+
+    public function test_a_migrated_site_is_not_redirected_even_without_a_lock_file(): void
+    {
+        $this->assertFalse(app(InstallLock::class)->isInstalled());
+
+        $this->get('/')->assertOk();
+    }
 }

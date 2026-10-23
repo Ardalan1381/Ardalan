@@ -67,6 +67,12 @@ class ZibalGateway implements PaymentGatewayInterface
         // 100 = verified now, 201 = already verified (Zibal's own distinct
         // "already verified" code — do not conflate with ZarinPal's 101).
         if (in_array($result, [100, 201], true)) {
+            // Defence in depth: the verified amount must be exactly what
+            // this payment asked for.
+            if (isset($data['amount']) && (int) $data['amount'] !== IranianAmount::fromPaymentAmount($payment->amount)) {
+                return PaymentVerificationResult::failure('Zibal verified a different amount than this payment requested.', $data);
+            }
+
             return PaymentVerificationResult::success((string) ($data['refNumber'] ?? ''), $data);
         }
 
