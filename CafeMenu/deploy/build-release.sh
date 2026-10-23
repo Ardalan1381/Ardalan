@@ -25,8 +25,10 @@ trap 'rm -rf "$STAGE"' EXIT
 
 echo "Staging CafeMenu $VERSION"
 # Tracked files only: untracked local files (.env, uploads) can never leak in.
+# Works whether the app is the repository root or a subdirectory of it.
+TOPLEVEL="$(git -C "$ROOT" rev-parse --show-toplevel)"
 PREFIX="$(git -C "$ROOT" rev-parse --show-prefix)"
-git -C "$ROOT" archive --format=tar "HEAD:${PREFIX}" | tar -x -C "$STAGE"
+git -C "$TOPLEVEL" archive --format=tar "HEAD:${PREFIX%/}" | tar -x -C "$STAGE"
 rm -rf "$STAGE/tests" "$STAGE/docs/engineering/screenshots" "$STAGE/CLAUDE.md" "$STAGE/phpunit.xml"
 
 cd "$STAGE"
