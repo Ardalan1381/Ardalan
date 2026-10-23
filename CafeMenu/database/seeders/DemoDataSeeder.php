@@ -56,6 +56,13 @@ class DemoDataSeeder extends Seeder
 {
     public function run(): void
     {
+        // Creates well-known demo logins (password "password"); never on a
+        // live installation. Production needs only RolePermissionSeeder,
+        // which the installer runs.
+        if (app()->isProduction()) {
+            throw new \RuntimeException(class_basename(static::class).' creates demo accounts with known passwords and must not run in production. Seed Database\\Seeders\\RolePermissionSeeder instead.');
+        }
+
         $this->seedBusinessSettings();
         $this->seedStaffUsers();
         $tables = $this->seedTablesAndSections();
